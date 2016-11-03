@@ -6,21 +6,61 @@
 #ifndef __STATE_H__
 #define __STATE_H__
 
-#include "logtest.h"
+// FIXME: Switch DEBUG to false when deploying to production.
+//const DEBUG bool = false;
+const boolean DEBUG = true;
 
-class HellaPsState {
+enum HellaState {
+	STATE_BORED,
+	STATE_ENGAGED,
+	STATE_POURING,
+	STATE_STOLEN,
+};
+
+enum TokenStatus {
+	TOKEN_UNSET,
+	TOKEN_ACCEPTED,
+	TOKEN_REJECTED,
+};
+
+enum ActionDesired {
+	ACTION_NONE,
+	ACTION_POUR,
+	ACTION_STOP,
+};
+
+class Helladuino {
 public:
 
-	int state;
+	HellaState state = STATE_BORED;
 
-	HardwareSerial *upstream;
+	String user_token = "";
+	TokenStatus token_status = TOKEN_UNSET;
 
-	void do_something(void);
+	boolean action_state = false;
+	ActionDesired action_desired = ACTION_NONE;
 
-} HellaPsState_;
+	boolean steal_state = false;
 
-void HellaPsState::do_something(void) {
-	testprint(&Serial);
+	// During testing, USB connection used for dumping 
+	HardwareSerial *upstream = NULL;
+
+	void trace(const String &s);
+
+	void put_msg(const String &s);
+
+} Helladuino_;
+
+void Helladuino::trace(const String &s) {
+	if (DEBUG) {
+		this->upstream->println(s);
+	}
+}
+
+void Helladuino::put_msg(const String &s) {
+	if (!DEBUG) {
+		this->upstream->println(s);
+	}
 }
 
 #endif // __STATE_H__

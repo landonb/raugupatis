@@ -26,7 +26,7 @@
 void loopers_setup(void);
 void loopers_loop(void);
 
-HellaPsState hellaps;
+Helladuino hellaps;
 
 // The *real* setup(), called from the main *.ino's setup(),
 // because [lb] is using the Arduino IDE and I don't want to
@@ -56,6 +56,8 @@ void loopers_loop()
 	//   // other code here
 	//
 	//   https://www.arduino.cc/en/Reference/Interrupts
+
+	
 
 	rfid_loop();
 
