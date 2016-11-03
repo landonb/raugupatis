@@ -2,9 +2,14 @@
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
+
+#ifndef __LOOPERS_H__
+#define __LOOPERS_H__
+
 #include "logtest.h"
 #include "lights.h"
 #include "rfid.h"
+#include "state.h"
 
 // Devices we attach.
 // - RFID scanner (2 digital pins)
@@ -18,12 +23,10 @@
 // - Solenoid/relay
 // - Flow meter
 
-// 2016-11-03: [lb] testing a simple breakout board implementation.
-const int button_pin = 12;
-const int light_pin = 3;
-
 void loopers_setup(void);
 void loopers_loop(void);
+
+HellaPsState hellaps;
 
 // The *real* setup(), called from the main *.ino's setup(),
 // because [lb] is using the Arduino IDE and I don't want to
@@ -36,13 +39,17 @@ void loopers_setup()
 
 	testprint(&Serial);
 
-	lights_setup();
 	rfid_setup();
+
+	lights_setup();
 }
 
 void loopers_loop()
 {
-	lights_setup();
 	rfid_loop();
+
+	lights_loop(&hellaps);
 }
+
+#endif // __LOOPERS_H__
 

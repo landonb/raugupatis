@@ -4,6 +4,9 @@
 // Description: Arduino interface to RFID Eval 13.56MHz Shield.
 // vim:tw=0:ts=4:sw=4:noet:
 
+#ifndef __RFID_H__
+#define __RFID_H__
+
 // Original copy:
 //
 //  RFID Eval 13.56MHz Shield example sketch v10
@@ -156,4 +159,6 @@ void set_flag()
 		flag = 0;
 	}
 }
+
+#endif // __RFID_H__
 
