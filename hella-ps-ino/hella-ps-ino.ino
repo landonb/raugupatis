@@ -32,9 +32,11 @@
 
 // https://www.arduino.cc/en/Main/ArduinoBoardUno
 
-#include <SoftwareSerial.h>
+//#include <SoftwareSerial.h>
 
 #include "logtest.h"
+
+#include "rfid.h"
 
 // Devices we attach.
 // - RFID scanner (2 digital pins)
@@ -53,24 +55,11 @@
 //   https://cdn.sparkfun.com/datasheets/Dev/Arduino/Shields/RFID_Eval_13.56MHz-v14.pdf
 //   https://github.com/sparkfun/RFID_Evaluation_Shield/tree/V_1.4
 // The UNO's Digital Pins 7 and 8 attach to D7 and D8 on the Sparkfun Shield, respectively.
-SoftwareSerial rfid(7, 8);
+//SoftwareSerial rfid(7, 8);
 
 // 2016-11-03: [lb] testing a simple breakout board implementation.
 const int button_pin = 12;
 const int light_pin = 3;
-
-// Prototypes.
-void check_for_notag(void);
-void halt(void);
-void parse(void);
-void print_serial(void);
-void read_serial(void);
-void seek(void);
-void set_flag(void);
-
-// Globals.
-int flag = 0;
-int Str1[11];
 
 // Built-in Arduino one-time setup routine.
 void setup()
@@ -80,101 +69,12 @@ void setup()
 
   testprint(&Serial);
 
-  // Set the data rate for the SoftwareSerial ports
-
-  rfid.begin(19200);
-  delay(10);
-  halt();
+  rfid_setup();
 }
 
 // Built-in Arduino main program loop.
 void loop()
 {
-  read_serial();
-}
-
-void check_for_notag()
-{
-  seek();
-  delay(10);
-  parse();
-  set_flag();
-
-// Is this right?
-//  if (flag = 1) {
-  if (flag == 1) {
-    seek();
-    delay(10);
-    parse();
-  }
-}
-
-void halt()
-{
-  // Halt tag
-  rfid.write((uint8_t)255);
-  rfid.write((uint8_t)0);
-  rfid.write((uint8_t)1);
-  rfid.write((uint8_t)147);
-  rfid.write((uint8_t)148);
-}
-
-void parse()
-{
-  while (rfid.available()) {
-    if (rfid.read() == 255) {
-      for (int i = 1; i < 11; i++) {
-        Str1[i] = rfid.read();
-      }
-    }
-  }
-}
-
-void print_serial()
-{
-  if (flag == 1) {
-    //print to serial port
-    char num[4];
-
-    Serial.print(Str1[8], HEX);
-    Serial.print(Str1[7], HEX);
-    Serial.print(Str1[6], HEX);
-    Serial.print(Str1[5], HEX);
-    Serial.println();
-
-    delay(100);
-    //check_for_notag();
-  }
-}
-
-void read_serial()
-{
-  seek();
-  delay(10);
-  parse();
-  set_flag();
-  print_serial();
-  delay(100);
-}
-
-void seek()
-{
-  // Search for RFID tag.
-  rfid.write((uint8_t)255);
-  rfid.write((uint8_t)0);
-  rfid.write((uint8_t)1);
-  rfid.write((uint8_t)130);
-  rfid.write((uint8_t)131);
-  delay(10);
-}
-
-void set_flag()
-{
-  if (Str1[2] == 6) {
-    flag++;
-  }
-  if (Str1[2] == 2) {
-    flag = 0;
-  }
+  rfid_loop();
 }
 
