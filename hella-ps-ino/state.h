@@ -9,10 +9,12 @@
 #include "logtest.h"
 
 class HellaPsState {
+public:
 
 	int state;
 
-public:
+	HardwareSerial *upstream;
+
 	void do_something(void);
 
 } HellaPsState_;

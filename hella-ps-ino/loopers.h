@@ -39,6 +39,8 @@ void loopers_setup()
 
 	testprint(&Serial);
 
+	hellaps.upstream = &Serial;
+
 	rfid_setup();
 
 	lights_setup();
@@ -46,6 +48,15 @@ void loopers_setup()
 
 void loopers_loop()
 {
+	// Regarding interrupts:
+	//
+	//   noInterrupts();
+	//   // critical, time-sensitive code here
+	//   interrupts();
+	//   // other code here
+	//
+	//   https://www.arduino.cc/en/Reference/Interrupts
+
 	rfid_loop();
 
 	lights_loop(&hellaps);

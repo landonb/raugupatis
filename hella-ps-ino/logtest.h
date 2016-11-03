@@ -9,10 +9,11 @@
 #include <SoftwareSerial.h>
 
 // Prototypes.
-void testprint(HardwareSerial *rfid);
+void testprint(HardwareSerial *upstream);
 
-void testprint(HardwareSerial *rfid) {
-	rfid->println("TEST!");
+void testprint(HardwareSerial *upstream) {
+	// https://www.arduino.cc/en/Serial/Println
+	upstream->println("TEST!");
 }
 
 #endif // __LOG_H__
