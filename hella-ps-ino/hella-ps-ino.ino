@@ -30,13 +30,36 @@
 //
 //   06/04/2013 - Modified for compatibility with Arudino 1.0. Seb Madgwick.
 
+// https://www.arduino.cc/en/Main/ArduinoBoardUno
+
 #include <SoftwareSerial.h>
 
 #include "logtest.h"
 
+// Devices we attach.
+// - RFID scanner (2 digital pins)
+// - Indicators (1 pin each):
+//    Red
+//    Green
+//    Yellow
+// - Switches
+//    Red
+//    Green
+// - Solenoid/relay
+// - Flow meter
+
+// Sparkfun.com RFID Eval 13.56 MHz shield data shield indicates the pin mappings.
+//   https://www.sparkfun.com/products/10406
+//   https://cdn.sparkfun.com/datasheets/Dev/Arduino/Shields/RFID_Eval_13.56MHz-v14.pdf
+//   https://github.com/sparkfun/RFID_Evaluation_Shield/tree/V_1.4
+// The UNO's Digital Pins 7 and 8 attach to D7 and D8 on the Sparkfun Shield, respectively.
 SoftwareSerial rfid(7, 8);
 
-//Prototypes
+// 2016-11-03: [lb] testing a simple breakout board implementation.
+const int button_pin = 12;
+const int light_pin = 3;
+
+// Prototypes.
 void check_for_notag(void);
 void halt(void);
 void parse(void);
@@ -45,7 +68,7 @@ void read_serial(void);
 void seek(void);
 void set_flag(void);
 
-//Global var
+// Globals.
 int flag = 0;
 int Str1[11];
 
@@ -77,7 +100,9 @@ void check_for_notag()
   parse();
   set_flag();
 
-  if(flag = 1){
+// Is this right?
+//  if (flag = 1) {
+  if (flag == 1) {
     seek();
     delay(10);
     parse();
@@ -86,7 +111,7 @@ void check_for_notag()
 
 void halt()
 {
-  //Halt tag
+  // Halt tag
   rfid.write((uint8_t)255);
   rfid.write((uint8_t)0);
   rfid.write((uint8_t)1);
@@ -96,10 +121,10 @@ void halt()
 
 void parse()
 {
-  while(rfid.available()){
-    if(rfid.read() == 255){
-      for(int i=1;i<11;i++){
-        Str1[i]= rfid.read();
+  while (rfid.available()) {
+    if (rfid.read() == 255) {
+      for (int i = 1; i < 11; i++) {
+        Str1[i] = rfid.read();
       }
     }
   }
@@ -107,7 +132,7 @@ void parse()
 
 void print_serial()
 {
-  if(flag == 1){
+  if (flag == 1) {
     //print to serial port
     char num[4];
 
@@ -152,5 +177,4 @@ void set_flag()
     flag = 0;
   }
 }
-
 
