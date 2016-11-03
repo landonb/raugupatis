@@ -55,7 +55,7 @@ public:
 	void trace(const String &s);
 	void put_msg(const String &s);
 	// State changes.
-	void go_stolen(void);
+	void state_transition(HellaState new_state);
 
 };
 

@@ -134,6 +134,3 @@ void rfid_set_flag() {
 	}
 }
 
-void rfid_purge(void) {
-}
-

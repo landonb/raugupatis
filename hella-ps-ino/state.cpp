@@ -49,6 +49,7 @@ void Helladuino::loop(void) {
 		if (this->state != STATE_STOLEN) {
 			rfid_reset();
 			pins_transition(STATE_STOLEN);
+			state_transition(STATE_STOLEN);
 		}
 		// else, being stolen and already in STATE_STOLEN; no-op.
 		// Set handled to true so we skip other state checks.
@@ -58,6 +59,7 @@ void Helladuino::loop(void) {
 		if (this->state == STATE_STOLEN) {
 			rfid_reset();
 			pins_transition(STATE_BORED);
+			state_transition(STATE_BORED);
 			handled = true;
 		}
 		// else, not being stolen and not stolen already,
@@ -81,7 +83,8 @@ void Helladuino::put_msg(const String &s) {
 	}
 }
 
-void Helladuino::go_stolen(void) {
-	this->state = STATE_STOLEN;
+void Helladuino::state_transition(HellaState new_state) {
+	this->state = new_state;
+	this->trace("Helladuino::state_transition: New state: " + this->get_state_name());
 }
 

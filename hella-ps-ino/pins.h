@@ -31,7 +31,7 @@ struct {
 	// the brigthness of an led.
 	//
 	// 2016-11-03: We only have only LED, and we're just using it for testing.
-	const int test_indicator = 5;
+	const int test_indicator = 4;
 
 	// The "steal" button lets a thirsty user bypass the login
 	// to immediately access beer. The user will likely be
@@ -39,6 +39,12 @@ struct {
 	// - We're using the Red button for this.
 	// NOTE: We'll need to poll this button since we're out of interrupt pins.
 	const int steal_button = 13;
+
+	// The buttons are also illuminatable.
+	const int action_indicator = 6;
+	const int steal_indicator = 7;
+	// And we should have a noise maker for stealers.
+	const int noise_indicator = 5;
 
 	// The "ready" state is when no one is logged on.
 	// - We're using the Yellow light for this.

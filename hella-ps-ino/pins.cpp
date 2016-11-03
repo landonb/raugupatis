@@ -57,6 +57,10 @@ void hook_indicator_lights(void) {
 	pinMode(pins.ready_indicator, OUTPUT);
 	pinMode(pins.authed_indicator, OUTPUT);
 	pinMode(pins.failed_indicator, OUTPUT);
+
+	pinMode(pins.action_indicator, OUTPUT);
+	pinMode(pins.steal_indicator, OUTPUT);
+	pinMode(pins.noise_indicator, OUTPUT);
 }
 
 void hook_annoying_alarms(void) {
@@ -82,6 +86,51 @@ uint8_t check_steal_button(void) {
 }
 
 void pins_transition(HellaState new_state) {
-// FIXME: Implement.
+	// The analogWrite duty cycle is from 0 to 255 and affects LED brightness.
+	int test_indicator_duty_cycle = 0;
+	// Crude. Dirty. State change.
+	switch (new_state) {
+		case STATE_BORED:
+         	digitalWrite(pins.ready_indicator, HIGH);
+         	digitalWrite(pins.authed_indicator, LOW);
+         	digitalWrite(pins.failed_indicator, LOW);
+         	digitalWrite(pins.action_indicator, LOW);
+         	digitalWrite(pins.steal_indicator, LOW);
+         	digitalWrite(pins.noise_indicator, LOW);
+			test_indicator_duty_cycle = 15;
+			break;
+		case STATE_ENGAGED:
+         	digitalWrite(pins.ready_indicator, LOW);
+         	digitalWrite(pins.authed_indicator, HIGH);
+         	digitalWrite(pins.failed_indicator, LOW);
+         	digitalWrite(pins.action_indicator, LOW);
+         	digitalWrite(pins.steal_indicator, LOW);
+         	digitalWrite(pins.noise_indicator, LOW);
+			test_indicator_duty_cycle = 45;
+			break;
+		case STATE_POURING:
+         	digitalWrite(pins.ready_indicator, LOW);
+         	digitalWrite(pins.authed_indicator, HIGH);
+         	digitalWrite(pins.failed_indicator, LOW);
+         	digitalWrite(pins.action_indicator, HIGH);
+         	digitalWrite(pins.steal_indicator, LOW);
+         	digitalWrite(pins.noise_indicator, LOW);
+			test_indicator_duty_cycle = 75;
+			break;
+		case STATE_STOLEN:
+         	digitalWrite(pins.ready_indicator, LOW);
+         	digitalWrite(pins.authed_indicator, HIGH);
+         	digitalWrite(pins.failed_indicator, LOW);
+         	digitalWrite(pins.action_indicator, LOW);
+         	digitalWrite(pins.steal_indicator, HIGH);
+         	digitalWrite(pins.noise_indicator, HIGH);
+			test_indicator_duty_cycle = 105;
+			break;
+		default:
+			// Unreacheable.
+			break;
+	}
+
+	analogWrite(pins.test_indicator, test_indicator_duty_cycle);
 }
 
