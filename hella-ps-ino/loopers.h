@@ -6,8 +6,7 @@
 #ifndef __LOOPERS_H__
 #define __LOOPERS_H__
 
-#include "logtest.h"
-#include "lights.h"
+#include "pins.h"
 #include "rfid.h"
 #include "state.h"
 
@@ -32,18 +31,12 @@ Helladuino hellaps;
 // because [lb] is using the Arduino IDE and I don't want to
 // have to copy-paste the main *.ino file to the IDE every
 // time I edit it in Vim.
+// UPDATE: I've since moved everything to a class, so shim-shim.
 void loopers_setup()
 {
-	Serial.begin(9600);
-	Serial.println("Start");
-
-	testprint(&Serial);
-
-	hellaps.upstream = &Serial;
-
+	pins_setup();
 	rfid_setup();
-
-	lights_setup();
+	hellaps.setup();
 }
 
 void loopers_loop()
@@ -56,12 +49,9 @@ void loopers_loop()
 	//   // other code here
 	//
 	//   https://www.arduino.cc/en/Reference/Interrupts
-
-	
-
+	pins_loop(&hellaps);
 	rfid_loop();
-
-	lights_loop(&hellaps);
+	hellaps.loop();
 }
 
 #endif // __LOOPERS_H__

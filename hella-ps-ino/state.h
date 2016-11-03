@@ -45,23 +45,16 @@ public:
 	// During testing, USB connection used for dumping 
 	HardwareSerial *upstream = NULL;
 
+	// Interface.
+	void setup(void);
+	void loop(void);
+	//
 	void trace(const String &s);
-
 	void put_msg(const String &s);
+	// State changes.
+	void go_stolen(void);
 
-} Helladuino_;
-
-void Helladuino::trace(const String &s) {
-	if (DEBUG) {
-		this->upstream->println(s);
-	}
-}
-
-void Helladuino::put_msg(const String &s) {
-	if (!DEBUG) {
-		this->upstream->println(s);
-	}
-}
+};
 
 #endif // __STATE_H__
 
