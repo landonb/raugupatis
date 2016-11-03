@@ -73,11 +73,15 @@ void pins_loop(Helladuino *hellaps) {
 	// Rather than fiddle hellaps from the ISR, we just do it here,
 	// on the next loop. Just make sure this loop is called before
 	// the state change loop.
-//	hellaps->action_desired = action_desired;
+	hellaps->latest_state = action_state;
 }
 
 uint8_t check_steal_button(void) {
 	uint8_t high_or_low = digitalRead(pins.steal_button);
 	return high_or_low;
+}
+
+void pins_transition(HellaState new_state) {
+// FIXME: Implement.
 }
 

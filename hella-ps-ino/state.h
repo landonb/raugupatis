@@ -39,6 +39,8 @@ public:
 
 	boolean action_state = false;
 	ActionDesired action_desired = ACTION_NONE;
+	// pins.cpp will set latest_state from its ISR.
+	boolean latest_state = false;
 
 	boolean steal_state = false;
 
@@ -49,6 +51,7 @@ public:
 	void setup(void);
 	void loop(void);
 	//
+	String get_state_name(void);
 	void trace(const String &s);
 	void put_msg(const String &s);
 	// State changes.

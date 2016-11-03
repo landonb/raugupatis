@@ -77,5 +77,7 @@ void pins_loop(Helladuino *hellaps);
 // Loop helpers.
 uint8_t check_steal_button(void);
 
+void pins_transition(HellaState new_state);
+
 #endif // __PINS_H__
 

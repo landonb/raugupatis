@@ -34,8 +34,8 @@ Helladuino hellaps;
 // UPDATE: I've since moved everything to a class, so shim-shim.
 void loopers_setup()
 {
-	pins_setup();
-	rfid_setup();
+//	pins_setup();
+//	rfid_setup();
 	hellaps.setup();
 }
 
@@ -49,8 +49,8 @@ void loopers_loop()
 	//   // other code here
 	//
 	//   https://www.arduino.cc/en/Reference/Interrupts
-	pins_loop(&hellaps);
-	rfid_loop();
+//	pins_loop(&hellaps);
+//	rfid_loop();
 	hellaps.loop();
 }
 

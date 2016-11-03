@@ -9,6 +9,21 @@
 #include "rfid.h"
 #include "state.h"
 
+String Helladuino::get_state_name(void) {
+	switch (this->state) {
+		case STATE_BORED:
+			return "Bored";
+		case STATE_ENGAGED:
+			return "Engaged";
+		case STATE_POURING:
+			return "Pouring";
+		case STATE_STOLEN:
+			return "Stolen";
+		default:
+			return "Unbevievable";
+	}
+}
+
 void Helladuino::setup(void) {
 	Serial.begin(9600);
 	Serial.println("Start");
@@ -17,37 +32,41 @@ void Helladuino::setup(void) {
 
 	this->trace("Hello, Beer!");
 
+	pins_setup();
+
+	rfid_setup();
 }
 
 void Helladuino::loop(void) {
+	boolean handled = false;
 
+	this->trace("Helladuino::loop: Current state: " + this->get_state_name());
 
+	pins_loop(this);
 
-
-//	uint8_t stealing = check_steal_button();
-
-/*
-	if ((stealing) && (hellaps->state != STATE_STOLEN)) {
-		hellaps->go_stolen();
-	}
-
-	switch(hellaps->state) {
-		case STATE_BORED:
-			if (stealing) {
-				
-			}
-	}
-
-	if (stealing && (STATE_STOLEN
-
-	if (hellaps->state == STATE_BORED) {
-		if (stealing) {
+	uint8_t stealing = check_steal_button();
+	if (stealing) {
+		if (this->state != STATE_STOLEN) {
+			rfid_reset();
+			pins_transition(STATE_STOLEN);
 		}
+		// else, being stolen and already in STATE_STOLEN; no-op.
+		// Set handled to true so we skip other state checks.
+		handled = true;
 	}
-*/
+	else {
+		if (this->state == STATE_STOLEN) {
+			rfid_reset();
+			pins_transition(STATE_BORED);
+			handled = true;
+		}
+		// else, not being stolen and not stolen already,
+		//       so check other states.
+	}
 
-
-	this->trace("YESSSSSSSSSSS");
+	if (!handled) {
+		rfid_loop();
+	}
 }
 
 void Helladuino::trace(const String &s) {

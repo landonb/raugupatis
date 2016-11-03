@@ -41,13 +41,14 @@
 void rfid_setup(void);
 void rfid_loop(void);
 //
-void check_for_notag(void);
-void halt(void);
-void parse(void);
-void print_serial(void);
-void read_serial(void);
-void seek(void);
-void set_flag(void);
+void rfid_check_for_notag(void);
+void rfid_halt(void);
+void rfid_parse(void);
+void rfid_print_serial(void);
+void rfid_read_serial(void);
+void rfid_reset(void);
+void rfid_seek(void);
+void rfid_set_flag(void);
 
 #endif // __RFID_H__
 
