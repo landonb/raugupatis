@@ -45,10 +45,12 @@ void rfid_check_for_notag(void);
 void rfid_halt(void);
 void rfid_parse(void);
 void rfid_print_serial(void);
-void rfid_read_serial(void);
+boolean rfid_read_serial(void);
 void rfid_reset(void);
 void rfid_seek(void);
 void rfid_set_flag(void);
+
+boolean rfid_get_tag(int rfid_tag[4]);
 
 #endif // __RFID_H__
 

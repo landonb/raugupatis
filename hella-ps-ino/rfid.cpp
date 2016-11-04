@@ -1,3 +1,8 @@
+// Last Modified: 2016.11.03
+// Project Page: https://github.com/landonb/raugupatis
+// Description: Ardruinko Schketch*hic*.
+// vim:tw=0:ts=4:sw=4:noet:
+
 #include "Arduino.h"
 
 #include "rfid.h"
@@ -12,8 +17,8 @@
 SoftwareSerial rfid(7, 8);
 
 // Globals.
-int flag = 0;
-int Str1[11];
+int rfid_resp[11];
+boolean rfid_found = false;
 
 // Built-in Arduino one-time setup routine.
 void rfid_setup() {
@@ -29,14 +34,13 @@ void rfid_loop() {
 }
 
 void rfid_check_for_notag() {
+	// NOTE: We don't use this fcn.
+
 	rfid_seek();
 	delay(10);
 	rfid_parse();
-	rfid_set_flag();
 
-// Is this right?
-//  if (flag = 1) {
-	if (flag == 1) {
+ 	if (rfid_found) {
 		rfid_seek();
 		delay(10);
 		rfid_parse();
@@ -62,35 +66,53 @@ void rfid_parse() {
 	while (rfid.available()) {
 		if (rfid.read() == 255) {
 			for (int i = 1; i < 11; i++) {
-				Str1[i] = rfid.read();
+				rfid_resp[i] = rfid.read();
 			}
 		}
 	}
+
+	rfid_set_flag();
 }
 
 void rfid_print_serial() {
-	if (flag == 1) {
-		//print to serial port
-		char num[4];
+	// NOTE: This fcn. not used.
 
-		Serial.print(Str1[8], HEX);
-		Serial.print(Str1[7], HEX);
-		Serial.print(Str1[6], HEX);
-		Serial.print(Str1[5], HEX);
+	if (rfid_found) {
+		// Print to serial port.
+		Serial.print(rfid_resp[8], HEX);
+		Serial.print(rfid_resp[7], HEX);
+		Serial.print(rfid_resp[6], HEX);
+		Serial.print(rfid_resp[5], HEX);
 		Serial.println();
-
-		delay(100);
+		//delay(100);
 		//rfid_check_for_notag();
 	}
 }
 
-void rfid_read_serial() {
+boolean rfid_read_serial() {
 	rfid_seek();
 	delay(10);
 	rfid_parse();
-	rfid_set_flag();
-	rfid_print_serial();
-	delay(100);
+	//rfid_print_serial();
+	//delay(100);
+	return rfid_found;
+}
+
+boolean rfid_get_tag(int rfid_tag[4]) {
+	rfid_tag[0] = 0;
+	rfid_tag[1] = 0;
+	rfid_tag[2] = 0;
+	rfid_tag[3] = 0;
+
+	boolean rfid_found_ = rfid_read_serial();
+	if (rfid_found_) {
+		rfid_tag[0] = rfid_resp[8];
+		rfid_tag[1] = rfid_resp[7];
+		rfid_tag[2] = rfid_resp[6];
+		rfid_tag[3] = rfid_resp[5];
+	}
+
+	return rfid_found_;
 }
 
 void rfid_reset() {
@@ -106,6 +128,7 @@ void rfid_reset() {
 	rfid.write((uint8_t)128);
 	//   CSUM -- Add all bytes except HEADER.
 	rfid.write((uint8_t)129);
+	// EXPLAIN: Are these delay()'s necessary for the device to respond?
 	delay(10);
 }
 
@@ -126,11 +149,16 @@ void rfid_seek() {
 }
 
 void rfid_set_flag() {
-	if (Str1[2] == 6) {
-		flag++;
+	// See Section 5.4 SEEK FOR TAG
+	//   https://www.sparkfun.com/datasheets/Sensors/ID/SM130.pdf
+	// [0] byte is typical 0xFF HEADER
+	// [1] byte is typical 0x00 RESERVED
+	// [2] bytes is length: 2 bytes if nothing found/6 bytes if RFID tag found.
+	if (rfid_resp[2] == 6) {
+		rfid_found = true;
 	}
-	if (Str1[2] == 2) {
-		flag = 0;
+	if (rfid_resp[2] == 2) {
+		rfid_found = false;
 	}
 }
 

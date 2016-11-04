@@ -6,12 +6,19 @@
 #include "Arduino.h"
 
 #include "comm.h"
+#include "state.h"
 
 boolean comm_authenticate(int rfid_tag[4]) {
 	boolean authenticated = false;
 
-	// FIXME: Until this is wired....
+// FIXME: Until this is wired....
 	authenticated = true;
 	return authenticated;
+}
+
+void comm_update_state(HellaState curr_state) {
+
+// FIXME: This guy...
+
 }
 

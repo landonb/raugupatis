@@ -10,6 +10,18 @@
 
 #include "state.h"
 
+// 01) Green switch
+// 02) Red switch
+// 03) Green Switch Light
+// 04) Red switch
+// 05) Red indicator
+// 06) Green indicator
+// 07) Yellow indicator
+// 08) 7
+// 09) 8
+// 10) 5v
+// 11) GND
+
 //struct pins {
 struct {
 	// MAGIC_NUMBERS: The UNO only supports interrupes on 2 & 3.
@@ -21,7 +33,7 @@ struct {
 	// is not logged on, um... we flash the failed_indicator
 	// or something....
 	// - We're using the Green button for this.
-	const int action_button = 2;
+	const int action_button = 2; // The Green button.
 	//
 	// The "flow_meter" is pretty self-explanatory.
 	const int flow_meter = 3;
@@ -41,7 +53,7 @@ struct {
 	const int steal_button = 13;
 
 	// The buttons are also illuminatable.
-	const int action_indicator = 6;
+	const int action_indicator = 6; // The Green button' light.
 	const int steal_indicator = 7;
 	// And we should have a noise maker for stealers.
 	const int noise_indicator = 5;

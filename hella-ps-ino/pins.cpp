@@ -1,9 +1,16 @@
+// Last Modified: 2016.11.03
+// Project Page: https://github.com/landonb/raugupatis
+// Description: Ardruinko Schketch*hic*.
+// vim:tw=0:ts=4:sw=4:noet:
+
 #include "Arduino.h"
 
 #include "pins.h"
 #include "state.h"
 
 volatile bool action_state = false;
+
+// Pins setup.
 
 void pins_setup() {
 	hook_action_button();
@@ -73,11 +80,42 @@ void hook_test_indicator(void) {
 	//digitalWrite(pins.test_indicator, HIGH);
 }
 
+// *** Loop routines.
+
 void pins_loop(Helladuino *hellaps) {
 	// Rather than fiddle hellaps from the ISR, we just do it here,
 	// on the next loop. Just make sure this loop is called before
 	// the state change loop.
-	hellaps->latest_state = action_state;
+	boolean was_desired = hellaps->action_desired;
+	hellaps->action_desired = action_state;
+	if (was_desired != hellaps->action_desired) {
+		//hellaps->trace("pins_loop: action_desired: " + hellaps->action_desired);
+		hellaps->trace(hellaps->action_desired ? "true" : "false");
+	}
+
+	// This pins code is mostly reactive, except for a few transitional
+	// states where we just let this module twiddle whatever it wants.
+	int state_uptime = millis() - hellaps->state_time_0;
+	switch (hellaps->state) {
+		case STATE_BUZZ_OFF:
+// FIXME: Make this state flash the lights for fun.
+			break;
+		case STATE_ENGAGING:
+// FIXME: Make this state flash the lights in some way.
+			break;
+		case STATE_ENGAGED:
+			if (state_uptime >= timeout_engaged_warning) {
+// FIXME: Make this state flash the lights or whatever.
+			}
+			break;
+		case STATE_DEGAGING:
+// FIXME: Make this state flash the lights in some way.
+			break;
+		default:
+			// Unreachable.
+			// FIXME: contract.Contract(false);
+			break;
+	}
 }
 
 uint8_t check_steal_button(void) {
