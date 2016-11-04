@@ -74,7 +74,7 @@ public:
 
 	boolean steal_state = false;
 
-	// During testing, USB connection used for dumping 
+	// During testing, USB connection used for dumping.
 	HardwareSerial *upstream = NULL;
 
 	// Interface.
