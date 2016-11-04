@@ -10,6 +10,8 @@
 
 #include "state.h"
 
+// https://www.arduino.cc/en/Main/ArduinoBoardUno
+
 // Devices we attach.
 // - RFID scanner (2 digital pins; 7 & 8, see rfid.cpp)
 // - Indicator lights (1 pin each)
