@@ -21,7 +21,6 @@ const int timeout_engaged_warning = 5000;
 //               
 const int timeout_engaged_de_auth = 10000;
 
-
 enum HellaState {
 	// An illegal state, just so unset/0/nil/null/NULL/None isn't valid.
 	STATE_NONE,
