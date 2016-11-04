@@ -15,6 +15,13 @@
 #   #sudo pip install --upgrade pip
 #   pip install pyserial
 #   pip install requests
+#
+# NOTE: Sometimes you gotta run `git` again.
+#   pi@hellapi:~/raugupatis/pi-beer $ git clone http://github.com/landonb/raugupatis
+#   fatal: unable to access 'http://github.com/landonb/raugupatis/': Could not resolve host: github.com
+#   pi@hellapi:~/raugupatis/pi-beer $ git clone http://github.com/landonb/raugupatis
+#   remote: Counting objects: 8, done.
+#   ...
 
 # USAGE
 #
@@ -249,7 +256,7 @@ class Pibeer(object):
 		footer_ = self.serial.read(2)
 		if len(footer_):
 			assert(len(footer_) == 2)
-			if (footer_[0] != 0) || (footer_[1] != 0):
+			if (footer_[0] != 0) or (footer_[1] != 0):
 				raise BeermeSerialException("WARNING: Footer not 2 nulls: %s" % (footer_,))
 
 	def sphinx_authenticate(self, token):
