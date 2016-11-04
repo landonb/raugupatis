@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.03
+// Last Modified: 2016.11.04
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -10,6 +10,20 @@
 
 #include "state.h"
 
+// Devices we attach.
+// - RFID scanner (2 digital pins)
+// - Indicators (1 pin each)
+//    Red
+//    Green
+//    Yellow
+// - Buttons (2 pins each; 1 press, 1 light)
+//    Red
+//    Green
+// - Solenoid/relay
+// - Flow meter
+
+// 2016-11-03: The 11-pin from the buttonboard to the 'duino.
+//
 // 01) Green switch
 // 02) Red switch
 // 03) Green Switch Light
@@ -22,9 +36,8 @@
 // 10) 5v
 // 11) GND
 
-//struct pins {
 struct {
-	// MAGIC_NUMBERS: The UNO only supports interrupes on 2 & 3.
+	// MAGIC_NUMBERS: The UNO supports interrupts on 2 & 3.
 	//
 	// The "action" button, when pressed by an authenticated
 	// user, activates or deactivates the service -- in our

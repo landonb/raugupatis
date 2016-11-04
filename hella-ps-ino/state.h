@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.03
+// Last Modified: 2016.11.04
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -69,7 +69,6 @@ public:
 	TokenStatus token_status = TOKEN_UNSET;
 
 	boolean action_state = false;
-//	ActionDesired action_desired = ACTION_NONE;
 	// pins.cpp will set action_desired from its ISR.
 	boolean action_desired = false;
 

@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.03
+// Last Modified: 2016.11.04
 // Project Page: https://github.com/landonb/raugupatis
 // Adapted from code by: Aaron Weiss, aaron at sparkfun dot com
 // Description: Arduino interface to RFID Eval 13.56MHz Shield.
@@ -7,7 +7,7 @@
 #ifndef __RFID_H__
 #define __RFID_H__
 
-// Original copy:
+// Original copy by Aaron Weiss:
 //
 //  RFID Eval 13.56MHz Shield example sketch v10
 //

@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.03
+// Last Modified: 2016.11.04
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -25,19 +25,23 @@ void hook_action_button(void) {
 	// MODEs: INPUT, OUTPUT, INPUT_PULLUP.
 	//   https://www.arduino.cc/en/Tutorial/DigitalPins
 	pinMode(pins.action_button, INPUT_PULLUP);
-	// Prior to Arduino 1.0.1, you'd have to instead do:
+	// Prior to Arduino 1.0.1, you'd do:
 	//	pinMode(pins.action_button, INPUT);
 	//	digitalWrite(pins.action_button, HIGH);
 
-	// The Uno lets us catch interrupts on Digital pins 2 and 3.
+	// The Uno hooks interrupts on Digital pins 2 and 3.
 	//  https://www.arduino.cc/en/Reference/AttachInterrupt
 	// Modes:
-	//  LOW to trigger the interrupt whenever the pin is low,
-	//  CHANGE to trigger the interrupt whenever the pin changes value
-	//  RISING to trigger when the pin goes from low to high,
-	//  FALLING for when the pin goes from high to low.
-	// [as] suggests triggering on the falling edge.
-	attachInterrupt(digitalPinToInterrupt(pins.action_button), on_action_button_isr, FALLING);
+	//  LOW     triggers whenever pin is low
+	//  CHANGE  triggers whenever pin changes value
+	//  RISING  triggers on pin low to high
+	//  FALLING triggers on pin high to low
+	// [as] says falling edge is most reliable.
+	attachInterrupt(
+		digitalPinToInterrupt(pins.action_button),
+		on_action_button_isr,
+		FALLING
+	);
 }
 
 void on_action_button_isr(void) {
@@ -46,7 +50,11 @@ void on_action_button_isr(void) {
 
 void hook_flowmeter(void) {
 	pinMode(pins.flow_meter, INPUT_PULLUP);
-	attachInterrupt(digitalPinToInterrupt(pins.flow_meter), on_flowmeter_isr, FALLING);
+	attachInterrupt(
+		digitalPinToInterrupt(pins.flow_meter),
+		on_flowmeter_isr,
+		FALLING
+	);
 }
 
 void on_flowmeter_isr(void) {
@@ -55,6 +63,7 @@ void on_flowmeter_isr(void) {
 
 void hook_steal_button(void) {
 	// FIXME: INPUT, or INPUT_PULLUP?
+	// 2016-11-03: This button has not been tested yet.
 	//pinMode(pins.steal_button, INPUT);
 	pinMode(pins.steal_button, INPUT_PULLUP);
 // FIXME: We'll need to poll this button state...
@@ -77,24 +86,29 @@ void hook_annoying_alarms(void) {
 
 void hook_test_indicator(void) {
 	pinMode(pins.test_indicator, OUTPUT);
+	// Damn, the light is bright!
 	//digitalWrite(pins.test_indicator, HIGH);
 }
 
 // *** Loop routines.
 
 void pins_loop(Helladuino *hellaps) {
-	// Rather than fiddle hellaps from the ISR, we just do it here,
-	// on the next loop. Just make sure this loop is called before
-	// the state change loop.
+	// Rather than signalling hellaps from the ISR, we do it here,
+	// with the understanding that hellaps calls us before going
+	// into its state change routine.
 	boolean was_desired = hellaps->action_desired;
 	hellaps->action_desired = action_state;
 	if (was_desired != hellaps->action_desired) {
+		// MEH: I tried putting the ? : in the trace() but the compiler complained.
 		//hellaps->trace("pins_loop: action_desired: " + hellaps->action_desired);
 		hellaps->trace(hellaps->action_desired ? "true" : "false");
 	}
 
-	// This pins code is mostly reactive, except for a few transitional
+	// The pins.cpp code is mostly reactive, except for a few transitional
 	// states where we just let this module twiddle whatever it wants.
+	//
+// FIXME: During these state changes make lots of noise and flashy things.
+	//
 	int state_uptime = millis() - hellaps->state_time_0;
 	switch (hellaps->state) {
 		case STATE_BUZZ_OFF:
@@ -113,7 +127,6 @@ void pins_loop(Helladuino *hellaps) {
 			break;
 		default:
 			// Unreachable.
-			// FIXME: contract.Contract(false);
 			break;
 	}
 }
