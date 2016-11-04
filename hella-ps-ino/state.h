@@ -16,7 +16,7 @@ const int timeout_degaging = 3210;
 const int timeout_engaged_warning = 5000;
 // FIXME: Hahaha, this might be too short to pour a beer.
 //        Specifically, while user is pouring beer, this is no real
-//         interaction with the system.
+//          interaction with the system.
 //        FIXME: When flowmeter is added, detecting flow should reset state_time_0.
 //               
 const int timeout_engaged_de_auth = 10000;
