@@ -188,6 +188,7 @@ class Pibeer(object):
 		trace("Clearing the serial buffer...")
 		# Just mop up whatever drippings we find and pour 'em out.
 		while True:
+			trace("Calling self.serial.read...")
 			next_ch_ = self.serial.read(1)
 			if len(next_ch_):
 				assert(len(next_ch_) == 1)
