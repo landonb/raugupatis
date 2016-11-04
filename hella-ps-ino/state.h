@@ -31,8 +31,8 @@ enum HellaState {
 	STATE_BUZZ_OFF,
 	STATE_ENGAGING,
 	// If the user swiped an RFID, was authenticated, and
-	// transitioned to through the light and sound state,
-	// they'll transition to the engaged state -- we're ready!
+	// transitioned through the light and sound state, they'll
+	// transition to the engaged state -- we're ready!
 	STATE_ENGAGED,
 	// For timing out on inactivity.
 	STATE_DEGAGING,
