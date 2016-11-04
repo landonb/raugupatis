@@ -58,8 +58,8 @@ import traceback
 # The serial read timeout defaults to None/no timeout.
 # I tried 1/4 second and seemed to get a stray character.
 #serial_timeout = 0.25
-#serial_timeout = 0.5
-serial_timeout = 1.0
+serial_timeout = 0.5
+#serial_timeout = 1.0
 
 # FIXME: 
 sphinx_addr = 'https://'
@@ -186,11 +186,18 @@ class Pibeer(object):
 				self.serial.timeout = serial_timeout
 				trace("connect_serial: self.serial.timeout: %s" % (self.serial.timeout,))
 
+#
+				time.sleep(0.5)
+
 				self.clear_serial()
 
 	def clear_serial(self):
 		trace("Clearing the serial buffer...")
 		# Just mop up whatever drippings we find and pour 'em out.
+		# HRMM: After opening the port, the first read is coming back
+		#       empty, and then second read finds crud. So fail twice
+		#       before failing for good.
+		n_repeats = 0
 		while True:
 			#trace("Calling self.serial.read...")
 			next_ch_ = self.serial.read(1)
@@ -201,7 +208,9 @@ class Pibeer(object):
 			else:
 				# Nothing returned, assume buffer is empty.
 				trace("clear_serial: all clear")
-				break
+				n_repeats += 1
+				if n_repeats > 1:
+					break
 
 	def look_for_work(self):
 		trace("Looking for work")
