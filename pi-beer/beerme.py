@@ -71,6 +71,7 @@ tracef = open('%s/raugupatis/pi-beer/beer.log' % (user_home,), 'w')
 def trace(msg):
 	if True:
 		tracef.write(msg + '\n')
+		tracef.flush()
 
 def warn(msg):
 	trace(msg)
