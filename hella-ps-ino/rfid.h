@@ -18,9 +18,9 @@
 //
 //   Based on hardware v13:
 //
-//     D7 -> RFID RX
-//     D8 -> RFID TX
-//     D9 -> XBee TX
+//     D7  -> RFID RX
+//     D8  -> RFID TX
+//     D9  -> XBee TX
 //     D10 -> XBee RX
 //
 //   Note: RFID Reset attached to D13 (aka status LED)
