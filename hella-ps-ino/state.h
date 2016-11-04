@@ -87,7 +87,6 @@ public:
 	void put_msg(const String &s);
 	// State changes.
 	void state_transition(HellaState new_state);
-
 };
 
 #endif // __STATE_H__
