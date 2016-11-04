@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# This INIT INFO block is required, per
+#   http://wiki.debian.org/LSBInitScripts
+
+### BEGIN INIT INFO
+# Provides:          beerme-always-and-forever
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start daemon at boot time
+# Description:       Enable service provided by daemon.
+### END INIT INFO
+
+# To install:
+#   cd /home/pi
+#   git clone https://github.com/landonb/raugupatis
+#   cd raugupatis/pi-beer
+#   sudo /bin/cp beerme-always-and-forever /etc/init.d/
+#   sudo /bin/chmod 755 /etc/init.d/beerme-always-and-forever
+#   sudo /bin/chown root /etc/init.d/beerme-always-and-forever
+#   sudo /bin/chgrp root /etc/init.d/beerme-always-and-forever
+#   sudo update-rc.d beerme-always-and-forever defaults
+#
+# IMPORTANT: Add your credentials here:
+SPHINX_URL="https://localhost"
+SPHINX_TOKEN="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+
+beerme_always_and_forever () {
+  cd /home/pi/raugupatis/pi-beer
+  ./beerme.py --host "${SPHINX_URL}" --token "${SPHINX_TOKEN}"
+}
+
+beerme_always_and_forever
+
