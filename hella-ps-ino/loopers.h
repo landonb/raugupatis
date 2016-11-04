@@ -11,17 +11,24 @@
 void loopers_setup(void);
 void loopers_loop(void);
 
-Helladuino hellaps;
+// C++ /shim/ *noun* dog and pony show
 
-// Just a shim into C++.
+Helladuino hellaps;
 
 void loopers_setup()
 {
 	hellaps.setup();
 }
 
+// Loopers Like to Loop
 void loopers_loop()
 {
+	// 2016-11-04: [lb] learns Wiring
+	//
+	//              https://arduinohistory.github.io/
+	//
+	//             and I leave lots of breadcrumbs.
+	//
 	// Regarding interrupts:
 	//
 	//   noInterrupts();
