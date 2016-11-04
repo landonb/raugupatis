@@ -1,4 +1,5 @@
 #!/bin/bash
+# vim:tw=0:ts=4:sw=4:et:norl:nospell:
 
 # This INIT INFO block is required, per
 #   http://wiki.debian.org/LSBInitScripts
@@ -13,16 +14,19 @@
 # Description:       Enable service provided by daemon.
 ### END INIT INFO
 
-# To install:
-#   cd /home/pi
-#   git clone https://github.com/landonb/raugupatis
-#   cd raugupatis/pi-beer
-#   sudo /bin/cp beerme-always-and-forever /etc/init.d/
-#   sudo /bin/chmod 755 /etc/init.d/beerme-always-and-forever
-#   sudo /bin/chown root /etc/init.d/beerme-always-and-forever
-#   sudo /bin/chgrp root /etc/init.d/beerme-always-and-forever
-#   sudo update-rc.d beerme-always-and-forever defaults
-#
+# To install (on yer Pi):
+INSTALL_CXPX_="
+cd /home/pi
+git clone http://github.com/landonb/raugupatis
+cd raugupatis/pi-beer
+sudo /bin/cp beerme-always-and-forever /etc/init.d/
+sudo /bin/chmod 755 /etc/init.d/beerme-always-and-forever
+sudo /bin/chown root /etc/init.d/beerme-always-and-forever
+sudo /bin/chgrp root /etc/init.d/beerme-always-and-forever
+sudo update-rc.d beerme-always-and-forever defaults
+# And then add the URL and token to the init.d script:
+sudo vi /etc/init.d/beerme-always-and-forever
+"
 # IMPORTANT: Add your credentials here:
 SPHINX_URL="https://localhost"
 SPHINX_TOKEN="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
