@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.03
+// Last Modified: 2016.11.04
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -137,7 +137,7 @@ void Helladuino::loop(void) {
 						}
 						else if (state_uptime >= timeout_engaged_warning) {
 							this->state_transition(STATE_DEGAGING);
-							// FIXME: If beer starts flowing, resume STATE_ENGAGED.
+		// FIXME/LATER: If beer starts flowing, resume STATE_ENGAGED.
 						}
 						// else, less time than the timeout, stay engaged.
 						break;
@@ -158,7 +158,6 @@ void Helladuino::loop(void) {
 						break;
 					default:
 						// Unreachable.
-						// FIXME: contract.Contract(false);
 						break;
 				}
 			}
