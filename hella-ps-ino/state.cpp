@@ -35,9 +35,7 @@ String Helladuino::get_state_name(void) {
 void Helladuino::setup(void) {
 	Serial.begin(9600);
 	Serial.println("Start");
-
 	this->upstream = &Serial;
-
 	this->trace("Hello, Beer!");
 
 	pins_setup();
