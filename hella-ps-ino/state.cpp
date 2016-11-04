@@ -137,7 +137,7 @@ void Helladuino::loop(void) {
 						}
 						else if (state_uptime >= timeout_engaged_warning) {
 							this->state_transition(STATE_DEGAGING);
-		// FIXME/LATER: If beer starts flowing, resume STATE_ENGAGED.
+	// FIXME/LATER: If beer starts flowing, resume STATE_ENGAGED.
 						}
 						// else, less time than the timeout, stay engaged.
 						break;
