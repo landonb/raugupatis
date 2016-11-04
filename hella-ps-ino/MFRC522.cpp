@@ -5,7 +5,8 @@
 */
 
 #include <Arduino.h>
-#include <MFRC522.h>
+
+#include "MFRC522.h"
 
 /////////////////////////////////////////////////////////////////////////////////////
 // Functions for setting up the Arduino

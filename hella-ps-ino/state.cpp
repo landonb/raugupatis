@@ -5,9 +5,10 @@
 
 #include "Arduino.h"
 
+#include "bluedot.h"
 #include "comm.h"
 #include "pins.h"
-#include "rfid.h"
+//#include "rfid.h"
 #include "state.h"
 
 String Helladuino::get_state_name(void) {
@@ -40,7 +41,13 @@ void Helladuino::setup(void) {
 
 	pins_setup();
 
-	rfid_setup();
+	// 2016-11-03: We fried the Sparkfun RFID reader.
+	//rfid_setup();
+	// 2016-11-04: Could not get the Funduino RFID reader working.
+	// Thankfully I had a 1 Wire blue dot and iButtons that work *easy*!
+	bluedot_setup();
+
+	pins_setup();
 }
 
 void Helladuino::loop(void) {
@@ -73,7 +80,8 @@ void Helladuino::loop(void) {
 	}
 
 	if (handled) {
-		rfid_reset();
+		//rfid_reset();
+		bluedot_reset();
 		// We transitioned from something to stolen, or from stolen
 		// to bored, so ignore the action button, if it was pressed.
 		this->action_desired = this->action_state;
@@ -81,17 +89,30 @@ void Helladuino::loop(void) {
 	else {
 		if (this->state == STATE_BORED) {
 			// See if a user swiped an RFID.
-			int rfid_tag[4];
-			boolean swiped = rfid_get_tag(rfid_tag);
+			//int rfid_tag[4];
+			//boolean swiped = rfid_get_tag(rfid_tag);
+			uint8_t ibutton_addr[8];
+			String key_status;
+			boolean swiped = bluedot_get_key_code(ibutton_addr, key_status);
+			this->trace("loop: bluedot_get_key_code: swiped: " + (swiped ? String("yes") : String("no")));
 			if (swiped) {
-				this->trace(
-					"Helladuino::loop: rfid_tag: "
-					+ rfid_tag[0]
-					+ rfid_tag[1]
-					+ rfid_tag[2]
-					+ rfid_tag[3]
-				);
-				boolean authenticated = comm_authenticate(rfid_tag);
+				//this->trace("loop: bluedot_get_key_code: ibutton_addr: " + ibutton_addr);
+				this->trace("loop: bluedot_get_key_code: ibutton_addr: ");
+				//this->trace(ibutton_addr);
+				for (int i = 0; i < 8; i++) {
+					this->trace(" index: " + (String)i + " / " + ibutton_addr[i]);
+				}
+				this->trace("loop: bluedot_get_key_code: key_status: " + key_status);
+				this->trace("Helladuino::loop: ibutton_addr:");
+				this->trace((String)ibutton_addr[0]);
+				this->trace((String)ibutton_addr[1]);
+				this->trace((String)ibutton_addr[2]);
+				this->trace((String)ibutton_addr[3]);
+				this->trace((String)ibutton_addr[4]);
+				this->trace((String)ibutton_addr[5]);
+				this->trace((String)ibutton_addr[6]);
+				this->trace((String)ibutton_addr[7]);
+				boolean authenticated = comm_authenticate(ibutton_addr);
 				if (authenticated) {
 					this->state_transition(STATE_ENGAGING);
 				}
@@ -108,7 +129,8 @@ void Helladuino::loop(void) {
 			//    STATE_ENGAGED/STATE_ENGAGING/STATE_DEGAGING,
 			// or STATE_POURING,
 			// so ignore RFID.
-			rfid_reset();
+			//rfid_reset();
+			bluedot_reset();
 
 			if (this->action_desired != this->action_state) {
 				if ((this->state == STATE_ENGAGED)
@@ -122,6 +144,9 @@ void Helladuino::loop(void) {
 				else {
 					// In STATE_ENGAGING or STATE_BUZZ_OFF.
 					// We'll just ignore this....
+//					this->trace("Helladuino::loop: Ignore: Desired != State: " + this->get_state_name());
+//					this->trace("Helladuino::loop: this->action_desired: " + this->action_desired);
+//					this->trace("Helladuino::loop: this->action_state: " + this->action_state);
 				}
 			}
 			else {
@@ -129,7 +154,20 @@ void Helladuino::loop(void) {
 				// If STATE_POURING, just stay in this state.
 				// If in another state, check the timeout.
 				int state_uptime = millis() - this->state_time_0;
+//				this->trace("Helladuino::loop: state_uptime: " + state_uptime);
 				switch (this->state) {
+					case STATE_BUZZ_OFF:
+						if (state_uptime >= timeout_degaging) {
+							this->state_transition(STATE_BORED);
+						}
+						// else, pins_loop handled the lights for this state.
+						break;
+					case STATE_ENGAGING:
+						if (state_uptime >= timeout_engaging) {
+							this->state_transition(STATE_ENGAGED);
+						}
+						// else, pins_loop handled the lights for this state.
+						break;
 					case STATE_ENGAGED:
 						if (state_uptime >= timeout_engaged_de_auth) {
 							this->state_transition(STATE_BORED);
@@ -140,20 +178,18 @@ void Helladuino::loop(void) {
 						}
 						// else, less time than the timeout, stay engaged.
 						break;
-					case STATE_POURING:
-						// No-op. Stay in state.
-						break;
-					case STATE_ENGAGING:
-						if (state_uptime >= timeout_engaging) {
-							this->state_transition(STATE_ENGAGED);
-						}
-						// else, pins_loop handled the lights for this state.
-						break;
-					case STATE_BUZZ_OFF:
+					case STATE_DEGAGING:
 						if (state_uptime >= timeout_degaging) {
 							this->state_transition(STATE_BORED);
 						}
+//						this->trace("BREAKING");
 						// else, pins_loop handled the lights for this state.
+						break;
+					case STATE_POURING:
+						// No-op. Stay in state.
+						break;
+					case STATE_STOLEN:
+						// No-op. Stay in state.
 						break;
 					default:
 						// Unreachable.
@@ -162,6 +198,7 @@ void Helladuino::loop(void) {
 			}
 		}
 	}
+	//this->trace("Helladuino::loop: Final state: " + this->get_state_name());
 }
 
 void Helladuino::trace(const String &s) {

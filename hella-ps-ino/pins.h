@@ -3,8 +3,6 @@
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
 
-// FIXME: Should probably rename this file. It's becoming the everything file.
-
 #ifndef __PINS_H__
 #define __PINS_H__
 

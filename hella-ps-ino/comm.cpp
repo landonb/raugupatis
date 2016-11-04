@@ -8,7 +8,8 @@
 #include "comm.h"
 #include "state.h"
 
-boolean comm_authenticate(int rfid_tag[4]) {
+//boolean comm_authenticate(int rfid_tag[4]) {
+boolean comm_authenticate(uint8_t ibutton_addr[8]) {
 	boolean authenticated = false;
 
 // FIXME: Mocked until wired....
