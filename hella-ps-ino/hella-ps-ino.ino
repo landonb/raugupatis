@@ -22,12 +22,12 @@
 // Built-in Arduino one-time setup routine.
 void setup()
 {
-  loopers_setup();
+	loopers_setup();
 }
 
 // Built-in Arduino main program loop.
 void loop()
 {
-  loopers_loop();
+	loopers_loop();
 }
 
