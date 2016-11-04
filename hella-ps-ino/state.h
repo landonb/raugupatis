@@ -74,7 +74,8 @@ public:
 
 	boolean steal_state = false;
 
-	// During testing, USB connection used for dumping.
+	// During testing, the USB wire is used for dumping trace messages.
+	// When hooked up to the Raspberry Pi, it's used for talking Pibeer.
 	HardwareSerial *upstream = NULL;
 
 	// Interface.
