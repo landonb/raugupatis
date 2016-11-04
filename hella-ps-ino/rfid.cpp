@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.03
+// Last Modified: 2016.11.04
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -8,11 +8,11 @@
 #include "rfid.h"
 
 // Sparkfun.com RFID Eval 13.56 MHz shield data shield indicates the pin mappings.
-//   https://www.sparkfun.com/products/10406
-//   https://cdn.sparkfun.com/datasheets/Dev/Arduino/Shields/RFID_Eval_13.56MHz-v14.pdf
-//   https://github.com/sparkfun/RFID_Evaluation_Shield/tree/V_1.4
+//    https://www.sparkfun.com/products/10406
+//    https://cdn.sparkfun.com/datasheets/Dev/Arduino/Shields/RFID_Eval_13.56MHz-v14.pdf
+//    https://github.com/sparkfun/RFID_Evaluation_Shield/tree/V_1.4
 //  For the read/write protocol:
-//   https://www.sparkfun.com/datasheets/Sensors/ID/SM130.pdf
+//    https://www.sparkfun.com/datasheets/Sensors/ID/SM130.pdf
 // The UNO's Digital Pins 7 and 8 attach to D7 and D8 on the Sparkfun Shield, respectively.
 SoftwareSerial rfid(7, 8);
 
