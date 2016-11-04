@@ -33,8 +33,6 @@
 //
 //   06/04/2013 - Modified for compatibility with Arudino 1.0. Seb Madgwick.
 
-// https://www.arduino.cc/en/Main/ArduinoBoardUno
-
 #include <SoftwareSerial.h>
 
 // Prototypes.
