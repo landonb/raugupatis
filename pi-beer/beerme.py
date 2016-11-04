@@ -58,7 +58,8 @@ import traceback
 # The serial read timeout defaults to None/no timeout.
 # I tried 1/4 second and seemed to get a stray character.
 #serial_timeout = 0.25
-serial_timeout = 0.5
+#serial_timeout = 0.5
+serial_timeout = 1.0
 
 # FIXME: 
 sphinx_addr = 'https://'
