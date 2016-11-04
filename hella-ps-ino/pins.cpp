@@ -32,11 +32,12 @@ void hook_action_button(void) {
 	// The Uno hooks interrupts on Digital pins 2 and 3.
 	//  https://www.arduino.cc/en/Reference/AttachInterrupt
 	// Modes:
-	//  LOW     triggers whenever pin is low
-	//  CHANGE  triggers whenever pin changes value
-	//  RISING  triggers on pin low to high
-	//  FALLING triggers on pin high to low
-	// [as] says falling edge is most reliable.
+	//  LOW      triggers whenever pin is low
+	//  CHANGE   triggers whenever pin changes value
+	//  RISING   triggers on pin low to high
+	//  FALLING  triggers on pin high to low
+	// An [se] heard on good authority from
+	// an [ee] that falling edge is most reliable.
 	attachInterrupt(
 		digitalPinToInterrupt(pins.action_button),
 		on_action_button_isr,
