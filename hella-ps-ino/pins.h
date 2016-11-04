@@ -11,8 +11,8 @@
 #include "state.h"
 
 // Devices we attach.
-// - RFID scanner (2 digital pins)
-// - Indicators (1 pin each)
+// - RFID scanner (2 digital pins; 7 & 8, see rfid.cpp)
+// - Indicator lights (1 pin each)
 //    Red
 //    Green
 //    Yellow
@@ -21,20 +21,21 @@
 //    Green
 // - Solenoid/relay
 // - Flow meter
+// - Ugly orange light
 
 // 2016-11-03: The 11-pin from the buttonboard to the 'duino.
 //
-// 01) Green switch
-// 02) Red switch
-// 03) Green Switch Light
-// 04) Red switch
-// 05) Red indicator
-// 06) Green indicator
-// 07) Yellow indicator
-// 08) 7
-// 09) 8
-// 10) 5v
-// 11) GND
+//      01) Green switch
+//      02) Red switch
+//      03) Green Switch Light
+//      04) Red switch
+//      05) Red indicator
+//      06) Green indicator
+//      07) Yellow indicator
+//      08) 7
+//      09) 8
+//      10) 5v
+//      11) GND
 
 struct {
 	// MAGIC_NUMBERS: The UNO supports interrupts on 2 & 3.
@@ -51,11 +52,13 @@ struct {
 	// The "flow_meter" is pretty self-explanatory.
 	const int flow_meter = 3;
 
-	// The UNO supports PWM~ on ports 3, 5, 6, 9, 10, and 11,
+	// The UNO supports Pulse Width Modulation (PWM~)
+	//  on ports 3, 5, 6, 9, 10, and 11,
 	// which supports analogWrite(pin_num, duty_cycle) to set
-	// the brigthness of an led.
+	// the brightness of an led.
+	//  https://en.wikipedia.org/wiki/Pulse-width_modulation
 	//
-	// 2016-11-03: We only have only LED, and we're just using it for testing.
+	// 2016-11-03: We only have only LED, and we're only testing on it.
 	const int test_indicator = 4;
 
 	// The "steal" button lets a thirsty user bypass the login
@@ -65,10 +68,11 @@ struct {
 	// NOTE: We'll need to poll this button since we're out of interrupt pins.
 	const int steal_button = 13;
 
-	// The buttons are also illuminatable.
+	// The buttons are also illuminable.
 	const int action_indicator = 6; // The Green button' light.
-	const int steal_indicator = 7;
-	// And we should have a noise maker for stealers.
+	const int steal_indicator = 7; // That pesky Red button.
+	// And we should have a noise maker for thieves.
+// FIXME: Find a Piezoelectric buzzer.
 	const int noise_indicator = 5;
 
 	// The "ready" state is when no one is logged on.
@@ -78,7 +82,7 @@ struct {
 	// successfully authenticated.
 	// - We're using the Green light for this.
 	const int authed_indicator = 9;
-	// The "failed" indicator tells user they're not
+	// The "failed" indicator tells user they are not
 	// authenticated.
 	// - We're using the Red light for this.
 	const int failed_indicator = 10;
