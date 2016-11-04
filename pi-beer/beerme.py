@@ -57,8 +57,8 @@ import traceback
 
 # The serial read timeout defaults to None/no timeout.
 # I tried 1/4 second and seemed to get a stray character.
-#serial_timeout = 0.25
-serial_timeout = 0.5
+serial_timeout = 0.25
+#serial_timeout = 0.5
 #serial_timeout = 1.0
 
 # FIXME: 
@@ -185,9 +185,6 @@ class Pibeer(object):
 				# The read timeout defaults to None/no timeout.
 				self.serial.timeout = serial_timeout
 				trace("connect_serial: self.serial.timeout: %s" % (self.serial.timeout,))
-
-#
-				time.sleep(0.5)
 
 				self.clear_serial()
 
