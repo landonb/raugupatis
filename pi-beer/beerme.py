@@ -180,10 +180,11 @@ class Pibeer(object):
 				)
 				warn(warning_msg)
 			else:
-				self.clear_serial()
 				# The read timeout defaults to None/no timeout.
 				self.serial.timeout = serial_timeout
 				trace("connect_serial: self.serial.timeout: %s" % (self.serial.timeout,))
+
+				self.clear_serial()
 
 	def clear_serial(self):
 		trace("Clearing the serial buffer...")
