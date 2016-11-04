@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.03
+// Last Modified: 2016.11.04
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -11,7 +11,7 @@
 boolean comm_authenticate(int rfid_tag[4]) {
 	boolean authenticated = false;
 
-// FIXME: Until this is wired....
+// FIXME: Mocked until wired....
 	authenticated = true;
 	return authenticated;
 }
