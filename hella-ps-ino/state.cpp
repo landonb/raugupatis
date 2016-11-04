@@ -175,6 +175,10 @@ void Helladuino::put_msg(const String &s) {
 	if (!DEBUG) {
 		this->upstream->println(s);
 	}
+	else {
+		// I love Arduino's String hack. [lb]
+		this->upstream->println("MOCK: " + s);
+	}
 }
 
 void Helladuino::state_transition(HellaState new_state) {
