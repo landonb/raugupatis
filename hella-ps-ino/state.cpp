@@ -176,7 +176,7 @@ void Helladuino::put_msg(const String &s) {
 	}
 	else {
 		// I love Arduino's String hack. [lb]
-		this->upstream->println("MOCK: " + s);
+		this->upstream->println("MOCK/put_msg: " + s);
 	}
 }
 
