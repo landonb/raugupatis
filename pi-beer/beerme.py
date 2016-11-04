@@ -16,12 +16,22 @@
 #   pip install pyserial
 #   pip install requests
 #
-# NOTE: Sometimes you gotta run `git` again.
-#   pi@hellapi:~/raugupatis/pi-beer $ git clone http://github.com/landonb/raugupatis
-#   fatal: unable to access 'http://github.com/landonb/raugupatis/': Could not resolve host: github.com
-#   pi@hellapi:~/raugupatis/pi-beer $ git clone http://github.com/landonb/raugupatis
-#   remote: Counting objects: 8, done.
-#   ...
+# On your dev machine, just alias this code
+#
+#   cd ~
+#   /bin/ln -s path/to/raugupatis
+#
+# On your Pi, clone this code
+#
+#  cd ~
+#  git clone https://github.com/landonb/raugupatis
+#
+#  NOTE: Sometimes you gotta run `git` again.
+#    pi@hellapi:~/raugupatis/pi-beer $ git clone http://github.com/landonb/raugupatis
+#    fatal: unable to access 'http://github.com/landonb/raugupatis/': Could not resolve host: github.com
+#    pi@hellapi:~/raugupatis/pi-beer $ git clone http://github.com/landonb/raugupatis
+#    remote: Counting objects: 8, done.
+#    ...
 
 # USAGE
 #
@@ -30,7 +40,7 @@
 import os
 import sys
 
-import optparse
+import argparse
 # Requests refs:
 #  http://docs.python-requests.org/en/master/
 import requests
@@ -43,6 +53,7 @@ import serial
 from serial.tools import list_ports_posix
 #from serial.tools.list_ports_posix import comports
 import time
+import traceback
 
 # The serial read timeout defaults to None/no timeout.
 # We'll use a half-second to start.
@@ -55,10 +66,11 @@ sphinx_token = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
 #def trace(*args, **kwargs):
 #    if True:
 #        print(*args, **kwargs)
-tracef = open('/home/pi/raugupatis/pi-beer/beer.log', 'w')
+user_home = os.path.expanduser("~")
+tracef = open('%s/raugupatis/pi-beer/beer.log' % (user_home,), 'w')
 def trace(msg):
 	if True:
-		trace.fwrite(msg + '\n')
+		tracef.write(msg + '\n')
 
 def warn(msg):
 	trace(msg)
@@ -68,12 +80,11 @@ class BeermeSerialException(Exception):
    '''Raised on Serial error to cleanup current connection.'''
    pass
 
-class Pibeer_Parser(optparse.OptionParser):
+class Pibeer_Parser(argparse.ArgumentParser):
 
 	def __init__(self):
-		optparse.OptionParser.__init__(self)
+		argparse.ArgumentParser.__init__(self)
 		self.cli_opts = None
-		self.cli_args = None
 
 	def get_opts(self):
 		self.prepare();
@@ -83,21 +94,19 @@ class Pibeer_Parser(optparse.OptionParser):
 
 	def prepare(self):
 
-		self.add_option('-h', '--host', dest='sphinx_host',
+		self.add_argument('-H', '--host', dest='sphinx_host',
 		    action='store', type=str, required=True,
 		    help='Sphinx host address')
 
-		self.add_option('-t', '--token', dest='sphinx_token',
+		self.add_argument('-t', '--token', dest='sphinx_token',
 		    action='store', type=str, required=True,
 		    help='Sphinx authentication token')
 
 	def parse(self):
 		'''Parse the command line arguments.'''
-		(opts, args) = self.parse_args()
 		# parse_args halts execution if user specifies:
 		#  (a) '-h', (b) '--help', or (c) unknown option.
-		self.cli_opts = opts
-		self.cli_args = args
+		self.cli_opts = self.parse_args()
 
 class Pibeer(object):
 
@@ -129,10 +138,14 @@ class Pibeer(object):
 			except serial.serialutil.SerialException as err:
 				# E.g, serial.serialutil.SerialException: device reports readiness
 				#           to read but returned no data (device disconnected?)
+				warn('WARNING: SerialException: %s' % (str(err),))
 				self.serial = None
 
 			except Exception as err:
 				warn("WARNING: Unhandled Exception: %s" % (str(err),))
+				warn(traceback.format_exc())
+				# Breathe a little for if you're debugging.
+				time.sleep(0.5)
 
 	def connect_serial(self):
 		# Get list of communication ports.
@@ -141,12 +154,13 @@ class Pibeer(object):
 		#       Also, [lb] sees the device number increment when you unplug and
 		#       replug the USB cable, so we can't just hardcode the device name.
 
+		trace("Looking for comports...")
 		comports = list_ports_posix.comports()
 
 		# Returns a dict-list, e.g.,
 		#  [('/dev/ttyACM1', 'ttyACM1', 'USB VID:PID=2341:0001 SNR=64935343633351905211')]
 
-		trace("Found %d comports" % (comports,))
+		trace("Found %d comport(s)" % (len(comports),))
 		if len(comports) > 1:
 			warn("WARNING: Found more than 1 port! Guessing and grabbing the first port.")
 
@@ -178,6 +192,7 @@ class Pibeer(object):
 		# else, nothing returned, assume buffer is empty.
 
 	def look_for_work(self):
+		trace("Looking for work")
 		# What's our protocol?
 		#   Should we just make up something simple for now?
 		#   How about a 1 byte header 0x00
