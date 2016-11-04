@@ -27,6 +27,7 @@ String Helladuino::get_state_name(void) {
 		case STATE_STOLEN:
 			return "Stolen";
 		default:
+			// Unreachable.
 			return "Unbevievable";
 	}
 }
