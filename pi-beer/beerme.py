@@ -187,14 +187,16 @@ class Pibeer(object):
 	def clear_serial(self):
 		trace("Clearing the serial buffer...")
 		# Just mop up whatever drippings we find and pour 'em out.
-		next_ch_ = self.serial.read(1)
-		if len(next_ch_):
-			assert(len(next_ch_) == 1)
-			next_ch = next_ch_.decode('utf-8')
-			trace("clear_serial: discard char: %s" % (next_ch,))
-		else:
-			# Nothing returned, assume buffer is empty.
-			trace("clear_serial: all clear")
+		while True:
+			next_ch_ = self.serial.read(1)
+			if len(next_ch_):
+				assert(len(next_ch_) == 1)
+				next_ch = next_ch_.decode('utf-8')
+				trace("clear_serial: discard char: %s" % (next_ch,))
+			else:
+				# Nothing returned, assume buffer is empty.
+				trace("clear_serial: all clear")
+				break
 
 	def look_for_work(self):
 		trace("Looking for work")
