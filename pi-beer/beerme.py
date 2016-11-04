@@ -48,7 +48,7 @@ sphinx_token = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
 #def trace(*args, **kwargs):
 #    if True:
 #        print(*args, **kwargs)
-tracef = open('/home/pi', 'w')
+tracef = open('/home/pi/raugupatis/pi-beer/beer.log', 'w')
 def trace(msg):
 	if True:
 		trace.fwrite(msg + '\n')
