@@ -56,8 +56,9 @@ import time
 import traceback
 
 # The serial read timeout defaults to None/no timeout.
-# We'll use a half-second to start.
-serial_timeout = 0.25
+# I tried 1/4 second and seemed to get a stray character.
+#serial_timeout = 0.25
+serial_timeout = 0.5
 
 # FIXME: 
 sphinx_addr = 'https://'
@@ -190,7 +191,7 @@ class Pibeer(object):
 		trace("Clearing the serial buffer...")
 		# Just mop up whatever drippings we find and pour 'em out.
 		while True:
-			trace("Calling self.serial.read...")
+			#trace("Calling self.serial.read...")
 			next_ch_ = self.serial.read(1)
 			if len(next_ch_):
 				assert(len(next_ch_) == 1)
