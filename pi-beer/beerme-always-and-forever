@@ -25,7 +25,7 @@ sudo /bin/chown root /etc/init.d/beerme-always-and-forever
 sudo /bin/chgrp root /etc/init.d/beerme-always-and-forever
 sudo update-rc.d beerme-always-and-forever defaults
 # And then add the URL and token to the init.d script:
-sudo vi /etc/init.d/beerme-always-and-forever
+sudo nano /etc/init.d/beerme-always-and-forever
 "
 # IMPORTANT: Add your credentials here:
 SPHINX_URL="https://localhost"
