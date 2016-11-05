@@ -43,7 +43,8 @@ boolean comm_authenticate(uint8_t ibutton_addr[8], Helladuino *hellaps) {
 
 	if (got_byte) {
 		hellaps->trace("comm_authenticate: incoming_byte: " + incoming_byte);
-		if (incoming_byte == 'T') {
+		//if (incoming_byte == 'T') {
+		if (incoming_byte == 1) {
 			authenticated = true;
 		}
 		// else, (incoming_byte == 'F')

@@ -19,6 +19,7 @@ void pins_setup() {
 	hook_indicator_lights();
 	hook_annoying_alarms();
 	hook_test_indicator();
+	hook_beer_solenoid();
 }
 
 void hook_action_button(void) {
@@ -77,12 +78,17 @@ void hook_indicator_lights(void) {
 
 	pinMode(pins.action_indicator, OUTPUT);
 	pinMode(pins.steal_indicator, OUTPUT);
-	pinMode(pins.noise_indicator, OUTPUT);
+	//pinMode(pins.noise_indicator, OUTPUT);
 }
 
 void hook_annoying_alarms(void) {
 	pinMode(pins.booze_alarm, OUTPUT);
-	pinMode(pins.theft_alarm, OUTPUT);
+	//pinMode(pins.theft_alarm, OUTPUT);
+}
+
+void hook_beer_solenoid(void) {
+	pinMode(pins.beer_solenoid, OUTPUT);
+	digitalWrite(pins.beer_solenoid, HIGH);
 }
 
 void hook_test_indicator(void) {
@@ -143,12 +149,13 @@ void pins_transition(HellaState new_state) {
 	// Crude. Dirty. State change.
 	switch (new_state) {
 		case STATE_BORED:
-         	digitalWrite(pins.ready_indicator, HIGH);
-         	digitalWrite(pins.authed_indicator, LOW);
-         	digitalWrite(pins.failed_indicator, LOW);
-         	digitalWrite(pins.action_indicator, LOW);
-         	digitalWrite(pins.steal_indicator, LOW);
-         	digitalWrite(pins.noise_indicator, LOW);
+			digitalWrite(pins.ready_indicator, HIGH);
+			digitalWrite(pins.authed_indicator, LOW);
+			digitalWrite(pins.failed_indicator, LOW);
+			digitalWrite(pins.action_indicator, LOW);
+			digitalWrite(pins.steal_indicator, LOW);
+			//digitalWrite(pins.noise_indicator, LOW);
+			digitalWrite(pins.beer_solenoid, HIGH);
 			test_indicator_duty_cycle = 15;
 			break;
 		case STATE_BUZZ_OFF:
@@ -157,34 +164,38 @@ void pins_transition(HellaState new_state) {
 			digitalWrite(pins.failed_indicator, HIGH);
 			digitalWrite(pins.action_indicator, LOW);
 			digitalWrite(pins.steal_indicator, LOW);
-			digitalWrite(pins.noise_indicator, LOW);
+			//digitalWrite(pins.noise_indicator, LOW);
+	      	digitalWrite(pins.beer_solenoid, HIGH);
 			test_indicator_duty_cycle = 15;
 			break;
 		case STATE_ENGAGED:
-         	digitalWrite(pins.ready_indicator, LOW);
-         	digitalWrite(pins.authed_indicator, HIGH);
-         	digitalWrite(pins.failed_indicator, LOW);
-         	digitalWrite(pins.action_indicator, LOW);
-         	digitalWrite(pins.steal_indicator, LOW);
-         	digitalWrite(pins.noise_indicator, LOW);
+			digitalWrite(pins.ready_indicator, LOW);
+			digitalWrite(pins.authed_indicator, HIGH);
+			digitalWrite(pins.failed_indicator, LOW);
+			digitalWrite(pins.action_indicator, LOW);
+			digitalWrite(pins.steal_indicator, LOW);
+			//digitalWrite(pins.noise_indicator, LOW);
+			digitalWrite(pins.beer_solenoid, HIGH);
 			test_indicator_duty_cycle = 45;
 			break;
 		case STATE_POURING:
-         	digitalWrite(pins.ready_indicator, LOW);
-         	digitalWrite(pins.authed_indicator, HIGH);
-         	digitalWrite(pins.failed_indicator, LOW);
-         	digitalWrite(pins.action_indicator, HIGH);
-         	digitalWrite(pins.steal_indicator, LOW);
-         	digitalWrite(pins.noise_indicator, LOW);
+			digitalWrite(pins.ready_indicator, LOW);
+			digitalWrite(pins.authed_indicator, HIGH);
+			digitalWrite(pins.failed_indicator, LOW);
+			digitalWrite(pins.action_indicator, HIGH);
+			digitalWrite(pins.steal_indicator, LOW);
+			//digitalWrite(pins.noise_indicator, LOW);
+			digitalWrite(pins.beer_solenoid, LOW);
 			test_indicator_duty_cycle = 75;
 			break;
 		case STATE_STOLEN:
-         	digitalWrite(pins.ready_indicator, LOW);
-         	digitalWrite(pins.authed_indicator, HIGH);
-         	digitalWrite(pins.failed_indicator, LOW);
-         	digitalWrite(pins.action_indicator, LOW);
-         	digitalWrite(pins.steal_indicator, HIGH);
-         	digitalWrite(pins.noise_indicator, HIGH);
+			digitalWrite(pins.ready_indicator, LOW);
+			digitalWrite(pins.authed_indicator, HIGH);
+			digitalWrite(pins.failed_indicator, LOW);
+			digitalWrite(pins.action_indicator, LOW);
+			digitalWrite(pins.steal_indicator, HIGH);
+			//digitalWrite(pins.noise_indicator, HIGH);
+			digitalWrite(pins.beer_solenoid, LOW);
 			test_indicator_duty_cycle = 105;
 			break;
 		default:

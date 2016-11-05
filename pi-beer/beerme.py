@@ -41,6 +41,8 @@ import os
 import sys
 
 import argparse
+import binascii
+import json
 # Requests refs:
 #  http://docs.python-requests.org/en/master/
 import requests
@@ -211,9 +213,7 @@ class Pibeer(object):
 			#trace("Calling self.serial.read...")
 			next_ch_ = self.serial.read(1)
 			if len(next_ch_):
-				assert(len(next_ch_) == 1)
-				next_ch = next_ch_.decode('utf-8')
-				trace("clear_serial: discard char: %s" % (next_ch,))
+				trace("clear_serial: discard char: %s" % (next_ch_,))
 			else:
 				# Nothing returned, assume buffer is empty.
 				trace("clear_serial: all clear")
@@ -276,8 +276,9 @@ class Pibeer(object):
 
 		for tok_byte in token_:
 			expectsum += tok_byte
-		token = token_.decode('utf-8')
-		trace("look_for_work: command: Authenticate / token: %s" % (token,))
+		#token = token_.decode('utf-8')
+		#trace("look_for_work: command: Authenticate / token: %s" % (token,))
+		trace("look_for_work: command: Authenticate / token_: %s" % (token_,))
 
 		checksum_ = self.serial.read(1)
 		if len(checksum_):
@@ -292,9 +293,15 @@ class Pibeer(object):
 
 		# Now that we've tediously parsed the serial command
 		# from the 'duino, talk to Sphinx across the net.
-		authenticated = self.sphinx_authenticate(token)
-		resp = "T" if authenticated else "F"
-		self.serial.write(resp.encode('utf-8'))
+		#authenticated = self.sphinx_authenticate(token)
+		authenticated = self.sphinx_authenticate(token_)
+# FIXME/2016-11-04: Being set, but no green...
+#		resp = "T" if authenticated else "F"
+		resp = b'\x01' if authenticated else b'\x00'
+		trace("look_for_work: resp: %s" % (resp,))
+
+		#self.serial.write(resp.encode('utf-8'))
+		self.serial.write(resp)
 		self.serial.flush()
 
 	def look_for_footer(self):
@@ -307,30 +314,35 @@ class Pibeer(object):
 
 	def sphinx_authenticate(self, token):
 		authenticated = False
-		#trace("Connecting to sphinx at %s using token %s"
-		#	% (self.cli_opts.sphinx_host, self.cli_opts.sphinx_token,)
-		#)
+
 		trace("Connecting to sphinx at %s using token %s"
 			% (self.cli_opts.sphinx_host, token,)
 		)
 
-# FIXME: This guy
-		self.cli_opts.sphinx_host
-		#self.cli_opts.sphinx_token
-		# etc.
-		FOR_EXAMPLE="""
-			>>> r.status_code
-			200
-			>>> r.headers['content-type']
-			'application/json; charset=utf8'
-			>>> r.encoding
-			'utf-8'
-			>>> r.text
-			u'{"type":"User"...'
-			>>> r.json()
-			{u'private_gists': 419, u'total_private_repos': 77, ...}
-		"""
-		if False:
+		token_bin = binascii.hexlify(token)
+		trace("Connecting to sphinx at %s using token_bin %s"
+			% (self.cli_opts.sphinx_host, token_bin,)
+		)
+		token_hex = token_bin.decode('utf-8')
+		trace("Connecting to sphinx at %s using token_hex %s"
+			% (self.cli_opts.sphinx_host, token_hex,)
+		)
+
+		headers = {'content-type': 'application/json',}
+		req = requests.post(
+			self.cli_opts.sphinx_host + '/api/token/authorize',
+			data=json.dumps({'token': token_hex,}),
+			headers=headers,
+		)
+		trace("sphinx_authenticate: req: %s" % (req,))
+
+		trace("sphinx_authenticate: req.text: %s" % (req.text,))
+
+		resp = json.loads(req.text)
+		trace("sphinx_authenticate: resp: %s" % (resp,))
+
+		if resp['authorized']:
+			trace("sphinx_authenticate: AUTHENTICATED")
 			authenticated = True
 
 		return authenticated

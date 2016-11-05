@@ -73,7 +73,7 @@ struct {
 	const int steal_indicator = 7; // That pesky Red button.
 	// And we should have a noise maker for thieves.
 // FIXME: Find a Piezoelectric buzzer.
-	const int noise_indicator = 5;
+	//const int noise_indicator = 5;
 
 	// The "ready" state is when no one is logged on.
 	// - We're using the Yellow light for this.
@@ -92,7 +92,12 @@ struct {
 	// so that beer can be flowed.
 	// - We're using an Orange traffic construction light for this.
 	const int booze_alarm = 11;
-	const int theft_alarm = 12;
+	// FIXME: No buffer on 12; using for solenoid.
+	//   FIXME: We can use analog inputs and set as digital.
+	//const int theft_alarm = 12; // FIXME: 12 is the 1 Wire.
+
+	// Inline beer line solenoid.
+	const int beer_solenoid = 5;
 
 } pins;
 
@@ -107,6 +112,7 @@ void hook_steal_button(void);
 void hook_indicator_lights(void);
 void hook_annoying_alarms(void);
 void hook_test_indicator(void);
+void hook_beer_solenoid(void);
 // Main application loop.
 void pins_loop(Helladuino *hellaps);
 // Loop helpers.

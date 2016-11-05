@@ -8,6 +8,7 @@
 #include "bluedot.h"
 #include "OneWire.h"
 
+// MAGIC_NUMBER: 12 is the pin number.
 OneWire ds(12);
 
 void bluedot_setup() {

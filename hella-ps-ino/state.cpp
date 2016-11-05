@@ -48,6 +48,8 @@ void Helladuino::setup(void) {
 	bluedot_setup();
 
 	pins_setup();
+
+	state_transition(STATE_BORED);
 }
 
 void Helladuino::loop(void) {
@@ -202,15 +204,15 @@ void Helladuino::trace(const String &s) {
 	}
 }
 
-void Helladuino::put_msg(const String &s) {
-	if (!DEBUG) {
-		this->upstream->println(s);
-	}
-	else {
-		// I love Arduino's String hack. [lb]
-		this->upstream->println("MOCK/put_msg: " + s);
-	}
-}
+//void Helladuino::put_msg(const String &s) {
+//	if (!DEBUG) {
+//		this->upstream->println(s);
+//	}
+//	else {
+//		// I love Arduino's String hack. [lb]
+//		this->upstream->println("MOCK/put_msg: " + s);
+//	}
+//}
 
 void Helladuino::put_byte(uint8_t byte) {
 	if (!DEBUG) {

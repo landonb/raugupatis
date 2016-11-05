@@ -7,7 +7,7 @@
 #define __STATE_H__
 
 // FIXME: Switch DEBUG to false when deploying to production.
-//const DEBUG bool = false;
+//const boolean DEBUG = false;
 const boolean DEBUG = true;
 
 const int timeout_engaging = 666;
@@ -83,7 +83,7 @@ public:
 	//
 	String get_state_name(void);
 	void trace(const String &s);
-	void put_msg(const String &s);
+	//void put_msg(const String &s);
 	void put_byte(uint8_t byte);
 	boolean get_byte(uint8_t& incoming_byte);
 	// State changes.
