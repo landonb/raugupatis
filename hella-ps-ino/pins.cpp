@@ -151,6 +151,15 @@ void pins_transition(HellaState new_state) {
          	digitalWrite(pins.noise_indicator, LOW);
 			test_indicator_duty_cycle = 15;
 			break;
+		case STATE_BUZZ_OFF:
+			digitalWrite(pins.ready_indicator, LOW);
+			digitalWrite(pins.authed_indicator, LOW);
+			digitalWrite(pins.failed_indicator, HIGH);
+			digitalWrite(pins.action_indicator, LOW);
+			digitalWrite(pins.steal_indicator, LOW);
+			digitalWrite(pins.noise_indicator, LOW);
+			test_indicator_duty_cycle = 15;
+			break;
 		case STATE_ENGAGED:
          	digitalWrite(pins.ready_indicator, LOW);
          	digitalWrite(pins.authed_indicator, HIGH);
