@@ -289,8 +289,8 @@ class Pibeer(object):
 		footer_ = self.serial.read(2)
 		if len(footer_):
 			assert(len(footer_) == 2)
-			if (footer_[0] != 0) or (footer_[1] != 0):
-				raise BeermeSerialException("WARNING: Footer not 2 nulls: %s" % (footer_,))
+			if (footer_[0] != 0xFF) or (footer_[1] != 0xFF):
+				raise BeermeSerialException("WARNING: Footer not 2 0xFFs: %s" % (footer_,))
 
 	def sphinx_authenticate(self, token):
 		authenticated = False
