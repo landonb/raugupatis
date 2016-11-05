@@ -63,7 +63,7 @@ serial_timeout = 0.25
 
 # FIXME: 
 sphinx_addr = 'https://'
-sphinx_token = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+#sphinx_token = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
 
 #def trace(*args, **kwargs):
 #    if True:
@@ -101,9 +101,13 @@ class Pibeer_Parser(argparse.ArgumentParser):
 		    action='store', type=str, required=True,
 		    help='Sphinx host address')
 
-		self.add_argument('-t', '--token', dest='sphinx_token',
+		#self.add_argument('-t', '--token', dest='sphinx_token',
+		#    action='store', type=str, required=True,
+		#    help='Sphinx authentication token')
+
+		self.add_argument('-D', '--device', dest='serial_dev',
 		    action='store', type=str, required=True,
-		    help='Sphinx authentication token')
+		    help='Serial device, e.g., /dev/ttyACM0')
 
 	def parse(self):
 		'''Parse the command line arguments.'''
@@ -157,18 +161,26 @@ class Pibeer(object):
 		#       Also, [lb] sees the device number increment when you unplug and
 		#       replug the USB cable, so we can't just hardcode the device name.
 
-		trace("Looking for comports...")
-		comports = list_ports_posix.comports()
+		comport = None
 
-		# Returns a dict-list, e.g.,
-		#  [('/dev/ttyACM1', 'ttyACM1', 'USB VID:PID=2341:0001 SNR=64935343633351905211')]
+		if not self.cli_opts.serial_dev:
+			trace("Looking for comports...")
+			comports = list_ports_posix.comportsa
 
-		trace("Found %d comport(s)" % (len(comports),))
-		if len(comports) > 1:
-			warn("WARNING: Found more than 1 port! Guessing and grabbing the first port.")
+			# Returns a dict-list, e.g.,
+			#  [('/dev/ttyACM1', 'ttyACM1', 'USB VID:PID=2341:0001 SNR=64935343633351905211')]
 
-		if len(comports) > 0:
-			comport = comports[0][0]
+			trace("Found %d comport(s)" % (len(comports),))
+			if len(comports) > 1:
+				warn("WARNING: Found more than 1 port! Guessing and grabbing the first port.")
+
+			if len(comports) > 0:
+				comport = comports[0][0]
+
+		else:
+			comport = self.cli_opts.serial_dev
+
+		if comport is not None:
 			trace("Opening com port: %s" % (comport,))
 
 			try:
@@ -254,7 +266,8 @@ class Pibeer(object):
 
 # FIXME: token_len...
 		# Next XXXXXX bytes are token.
-		token_len = 4 
+		#token_len = 4
+		token_len = 8
 
 		token_ = self.serial.read(token_len)
 		if not len(token_):
@@ -294,13 +307,16 @@ class Pibeer(object):
 
 	def sphinx_authenticate(self, token):
 		authenticated = False
+		#trace("Connecting to sphinx at %s using token %s"
+		#	% (self.cli_opts.sphinx_host, self.cli_opts.sphinx_token,)
+		#)
 		trace("Connecting to sphinx at %s using token %s"
-			% (self.cli_opts.sphinx_host, self.cli_opts.sphinx_token,)
+			% (self.cli_opts.sphinx_host, token,)
 		)
 
 # FIXME: This guy
 		self.cli_opts.sphinx_host
-		self.cli_opts.sphinx_token
+		#self.cli_opts.sphinx_token
 		# etc.
 		FOR_EXAMPLE="""
 			>>> r.status_code

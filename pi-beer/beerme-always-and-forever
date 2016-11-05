@@ -32,13 +32,12 @@ sudo nano /etc/init.d/beerme-always-and-forever
 "
 # IMPORTANT: Add your credentials here:
 SPHINX_URL="https://localhost"
-SPHINX_TOKEN="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 
 DIR=/home/pi/raugupatis/pi-beer
 DAEMON=$DIR/beerme.py
 DAEMON_NAME=beerme.py
 
-DAEMON_OPTS="--host \"${SPHINX_URL}\" --token \"${SPHINX_TOKEN}\""
+DAEMON_OPTS="--host \"${SPHINX_URL}\""
 
 DAEMON_USER=pi
 
