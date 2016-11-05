@@ -10,7 +10,7 @@
 
 OneWire ds(12);
 
-void bluedot_setup(void) {
+void bluedot_setup() {
 	// no-op
 }
 

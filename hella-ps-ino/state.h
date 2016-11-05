@@ -84,6 +84,8 @@ public:
 	String get_state_name(void);
 	void trace(const String &s);
 	void put_msg(const String &s);
+	void put_byte(uint8_t byte);
+	boolean get_byte(uint8_t& incoming_byte);
 	// State changes.
 	void state_transition(HellaState new_state);
 };

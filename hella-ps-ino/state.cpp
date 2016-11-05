@@ -112,7 +112,7 @@ void Helladuino::loop(void) {
 				this->trace((String)ibutton_addr[5]);
 				this->trace((String)ibutton_addr[6]);
 				this->trace((String)ibutton_addr[7]);
-				boolean authenticated = comm_authenticate(ibutton_addr);
+				boolean authenticated = comm_authenticate(ibutton_addr, this);
 				if (authenticated) {
 					this->state_transition(STATE_ENGAGING);
 				}
@@ -144,9 +144,6 @@ void Helladuino::loop(void) {
 				else {
 					// In STATE_ENGAGING or STATE_BUZZ_OFF.
 					// We'll just ignore this....
-//					this->trace("Helladuino::loop: Ignore: Desired != State: " + this->get_state_name());
-//					this->trace("Helladuino::loop: this->action_desired: " + this->action_desired);
-//					this->trace("Helladuino::loop: this->action_state: " + this->action_state);
 				}
 			}
 			else {
@@ -154,7 +151,6 @@ void Helladuino::loop(void) {
 				// If STATE_POURING, just stay in this state.
 				// If in another state, check the timeout.
 				int state_uptime = millis() - this->state_time_0;
-//				this->trace("Helladuino::loop: state_uptime: " + state_uptime);
 				switch (this->state) {
 					case STATE_BUZZ_OFF:
 						if (state_uptime >= timeout_degaging) {
@@ -182,7 +178,6 @@ void Helladuino::loop(void) {
 						if (state_uptime >= timeout_degaging) {
 							this->state_transition(STATE_BORED);
 						}
-//						this->trace("BREAKING");
 						// else, pins_loop handled the lights for this state.
 						break;
 					case STATE_POURING:
@@ -215,6 +210,42 @@ void Helladuino::put_msg(const String &s) {
 		// I love Arduino's String hack. [lb]
 		this->upstream->println("MOCK/put_msg: " + s);
 	}
+}
+
+void Helladuino::put_byte(uint8_t byte) {
+	if (!DEBUG) {
+		this->upstream->write(byte);
+	}
+	else {
+		// I love Arduino's String hack. [lb]
+		this->upstream->println("MOCK/put_byte: 0x" + byte);
+	}
+}
+
+boolean Helladuino::get_byte(uint8_t& incoming_byte) {
+	// https://www.arduino.cc/en/Reference/Serial
+	// Serial.readBytes() blocks until the timeout.
+	// Serial.setTimeout(time) defaults to 1000 (milliseconds).
+	// Serial.real() doesn't block as far as I can tell.
+	//
+	boolean got_byte = false;
+	// The receive buffer holds 64 bytes until we read it.
+	//  https://www.arduino.cc/en/Serial/Available
+	if (this->upstream->available() == 0) {
+		// Should we delay?
+		delay(500);
+	}
+	if (this->upstream->available() > 0) {
+		if (!DEBUG) {
+			incoming_byte = this->upstream->read();
+		}
+		else {
+			incoming_byte = 0x00;
+			this->upstream->println("MOCK/get_byte: 0xNN");
+		}
+		got_byte = true;
+	}
+	return got_byte;
 }
 
 void Helladuino::state_transition(HellaState new_state) {

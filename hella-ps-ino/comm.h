@@ -6,7 +6,7 @@
 #include "state.h"
 
 //boolean comm_authenticate(int rfid_tag[4]);
-boolean comm_authenticate(uint8_t ibutton_addr[8]);
+boolean comm_authenticate(uint8_t ibutton_addr[8], Helladuino *hellaps);
 
 void comm_update_state(HellaState curr_state);
 
