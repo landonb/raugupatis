@@ -28,7 +28,7 @@
 //      01) Green switch
 //      02) Red switch
 //      03) Green Switch Light
-//      04) Red switch
+//      04) Red switch Light
 //      05) Red indicator
 //      06) Green indicator
 //      07) Yellow indicator
@@ -69,7 +69,7 @@ struct {
 	const int steal_button = 13;
 
 	// The buttons are also illuminable.
-	const int action_indicator = 6; // The Green button' light.
+	const int action_indicator = 6; // The Green button's light.
 	const int steal_indicator = 7; // That pesky Red button.
 	// And we should have a noise maker for thieves.
 // FIXME: Find a Piezoelectric buzzer.
