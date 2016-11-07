@@ -23,7 +23,8 @@ void BlueDot::reset() {
 	ds.reset();
 }
 
-Bluedot_Key_Status BlueDot::get_key_code(uint8_t ibutton_addr[8]) {
+//Bluedot_Key_Status BlueDot::get_key_code(uint8_t ibutton_addr[8]) {
+Bluedot_Key_Status BlueDot::get_key_code(uint8_t ibutton_addr[IBUTTON_LEN]) {
 	Bluedot_Key_Status key_status = BLUEDOT_KEY_STATUS_UNKNOWN;
 
 	if (!ds.search(ibutton_addr)) {

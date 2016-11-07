@@ -8,6 +8,8 @@
 
 #include "state.h"
 
+const int IBUTTON_LEN = 8;
+
 enum Bluedot_Key_Status {
 	BLUEDOT_KEY_STATUS_UNKNOWN,
 	BLUEDOT_KEY_STATUS_VALID,
@@ -21,7 +23,8 @@ public:
 
 	void setup(void);
 	void reset(void);
-	Bluedot_Key_Status get_key_code(uint8_t ibutton_addr[8]);
+//	Bluedot_Key_Status get_key_code(uint8_t ibutton_addr[8]);
+	Bluedot_Key_Status get_key_code(uint8_t ibutton_addr[IBUTTON_LEN]);
 	const char* get_key_status_name(Bluedot_Key_Status key_status);
 };
 
