@@ -8,7 +8,8 @@
 
 #include "hella-ps.h"
 
-struct {
+// Using PROGMEM here seems to have no effect.
+const struct PROGMEM {
 
 	const int engaging = 666;
 	const int engaged_degaging = 5000;
@@ -72,6 +73,8 @@ enum HellaState {
 	// user or non-user (another stealer) from interacting with/engaging
 	// the system while we proceed through a thoroughly obnoxious animation.
 	STATE_SKULKING,
+
+	_STATE_COUNT,
 };
 
 class StateMachine {
@@ -103,6 +106,7 @@ public:
 	unsigned long last_flow_report = 0;
 
 	const char* get_state_name(void);
+	const char* get_state_name(HellaState state);
 
 	void setup(Helladuino *hellaps);
 	void loop(void);

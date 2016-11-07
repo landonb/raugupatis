@@ -11,11 +11,21 @@
 
 // Ug. I read somewhere about not using String, so now I'm
 // finding myself passing char stars and buffer lengths around.
-const unsigned int comm_len = 1024;
+const unsigned int comm_len PROGMEM = 1024;
 
 void CommUpstream::setup(void) {
 	//Serial.begin(9600);
 	Serial.begin(115200);
+
+	// 2016-11-07: While investigating a problem with weird characters
+	// in the Serial output (solved by using PSTR() and not draining the
+	// SRAM), I read a post that suggests waiting for the port to be hooked
+	// before continuing. I cannot tell a difference with or without this wait.
+	// NOTE: I read that when you hook the Arduino app with the IDE terminal,
+	//       it restarts the sketch -- which is sometimes why you see part of
+	//       the "Hello, Beer!" message and then see it repeated.
+	//while (!Serial); // While the serial stream is not open, do nothing.
+
 	this->upstream = &Serial;
 }
 
@@ -29,58 +39,59 @@ void CommUpstream::trace(const char *msg, ...) {
 void CommUpstream::vtrace(const char *fmt, va_list argp) {
 	char payload[comm_len];
 	// Use snprintf and not just sprintf to avoid buffer overflow.
-	// NOTE: Assuming this thing gets null-terminated.
-	snprintf(payload, comm_len, fmt, argp);
+	// Correction: Use vsnprintf and not snprintf because va_list.
+	vsnprintf(payload, comm_len, fmt, argp);
 	// Start of message.
-	this->put_msg("hi");
+	this->put_msg(PSTR("hi"));
 	// Command.
-	this->put_msg("trace");
+	this->put_msg(PSTR("trace"));
 	// Payload.
 	this->put_msg(payload);
 	// Outro.
-	this->put_msg("bye");
+	this->put_msg(PSTR("bye"));
 }
 
 bool CommUpstream::contract(const bool assertion, const char *file, const unsigned long line) {
 	if (!assertion) {
-		this->trace("CONTRACT: Failed in file: %s / line: %d", file, line);
+		this->trace(PSTR("CONTRACT: Failed in file: %s / line: %d"), file, line);
 	}
 }
 
 bool CommUpstream::authenticate(const char* token) {
 	bool authenticated = false;
 
-	this->trace("authenticate: sending token: %s", token);
+	this->trace(PSTR("authenticate: sending token: %s"), token);
 
 	// Start of message.
-	this->put_msg("hi");
+	this->put_msg(PSTR("hi"));
 	// Command.
-	this->put_msg("auth");
+	this->put_msg(PSTR("auth"));
 	// Payload.
 	this->put_msg(token);
 	// Outro.
-	this->put_msg("bye");
+	this->put_msg(PSTR("bye"));
 
 	// And then what? Block on read?
 	// Also, some examples suggest delay(10) msecs,
 	//  but we can just block on read, right?
-	this->trace("authenticate: awaiting response...");
+
+	this->trace(PSTR("authenticate: awaiting response..."));
 
 	char response[comm_len];
 	bool received = this->get_msg(response, comm_len);
 	if (response[0] == '\0') {
 		// FIXME: Timeout?
-		this->trace("authenticate: WARNING: timeout/No response");
+		this->trace(PSTR("authenticate: WARNING: timeout/No response"));
 	}
-	else if (strcmp(response, "ok")) {
-		this->trace("authenticate: okay");
+	else if (strcmp(response, PSTR("ok"))) {
+		this->trace(PSTR("authenticate: okay"));
 		authenticated = true;
 	}
-	else if (strcmp(response, "no")) {
-		this->trace("authenticate: nope");
+	else if (strcmp(response, PSTR("no"))) {
+		this->trace(PSTR("authenticate: nope"));
 	}
 	else {
-		this->trace("authenticate: WARNING: unexpected response: %s", response);
+		this->trace(PSTR("authenticate: WARNING: unexpected response: %s"), response);
 	}
 
 	return authenticated;
@@ -91,29 +102,35 @@ void CommUpstream::update_flow(
 	unsigned long elapsed_blip,
 	unsigned long elapsed_time
 ) {
-	this->trace("authenticate: updating flow: %s", state_name);
+	this->trace(PSTR("authenticate: updating flow: %s"), state_name);
 
 	// Start of message.
-	this->put_msg("hi");
+	this->put_msg(PSTR("hi"));
 	// Command(s) and payload.
 	// - State name.
-	this->put_msg("state");
+	this->put_msg(PSTR("state"));
 	this->put_msg(state_name);
 	// - Blips elapsed in this state.
-	this->put_msg("blips");
+	this->put_msg(PSTR("blips"));
 	this->put_ulong(elapsed_blip);
 	// - Msecs. elapsed in this state.
-	this->put_msg("msecs");
+	this->put_msg(PSTR("msecs"));
 	this->put_ulong(elapsed_time);
 	// Outro.
-	this->put_msg("bye");
+	this->put_msg(PSTR("bye"));
 }
 
 void CommUpstream::put_msg(const char *msg) {
 	if (DEBUG) {
-		this->upstream->print("MOCK/put_msg: ");
+		this->upstream->print(PSTR("MOCK/put_msg: "));
 	}
 	this->upstream->println(msg);
+	// 2016-11-07: While investigating the serial comm garbage issue
+	// (solved by using PSTR()), I tried adding flush(), but I don't
+	// think it, like, waits and makes sure the outgoing bytes are
+	// sent, but instead I think it just resets the channel and dumps
+	// whatever is still queued to be sent. So don't do this:
+	//  this->upstream->flush();
 }
 
 bool CommUpstream::get_msg(char *msg, size_t nbytes) {
@@ -121,13 +138,13 @@ bool CommUpstream::get_msg(char *msg, size_t nbytes) {
 		size_t bytes_read = this->upstream->readBytesUntil('\n', msg, nbytes);
 		// NOTE: Don't care about bytes_read, except maybe if == nbytes.
 		if (bytes_read == nbytes) {
-			this->trace("get_msg: WARNING: read max nbytes: %d",  nbytes);
+			this->trace(PSTR("get_msg: WARNING: read max nbytes: %d"),  nbytes);
 		}
 		this->trim_msg(msg, nbytes);
 	}
 	else {
 		// FIXME/Whatever: This is useless.
-		snprintf(msg, nbytes, "MOCK/get_msg");
+		snprintf(msg, nbytes, PSTR("MOCK/get_msg"));
 	}
 	return msg;
 }
@@ -159,7 +176,7 @@ void CommUpstream::trim_msg(char *msg, size_t nbytes) {
 // FIXME: put_byte and get_byte not used.
 void CommUpstream::put_byte(uint8_t byte) {
 	if (DEBUG) {
-		this->upstream->print("MOCK/put_byte: ");
+		this->upstream->print(PSTR("MOCK/put_byte: "));
 	}
 	this->upstream->println(byte, HEX);
 }
@@ -187,7 +204,7 @@ bool CommUpstream::get_byte(uint8_t &byte) {
 	else {
 		// FIXME/WHATEVER: This is pretty useless.
 		byte = 0x00;
-		this->upstream->println("MOCK/get_byte: 0xNN");
+		this->upstream->println(PSTR("MOCK/get_byte: 0xNN"));
 		got_byte = true;
 	}
 	return got_byte;
@@ -195,7 +212,7 @@ bool CommUpstream::get_byte(uint8_t &byte) {
 
 void CommUpstream::put_ulong(unsigned long num) {
 	if (DEBUG) {
-		this->upstream->print("MOCK/put_ulong: ");
+		this->upstream->print(PSTR("MOCK/put_ulong: "));
 	}
 	for (int i = 0; i < 4; i++) {
 		uint8_t byte = (num & 0xFF);
@@ -204,7 +221,7 @@ void CommUpstream::put_ulong(unsigned long num) {
 		this->upstream->write(byte);
 	}
 // FIXME: Does this work to just print a newline?:
-	this->upstream->println("");
+	this->upstream->println(PSTR(""));
 }
 
 // FIXME: This fcn. is not called.
@@ -229,14 +246,14 @@ bool CommUpstream::get_ulong(unsigned long &num) {
 				}
 			}
 			else {
-				this->trace("get_ulong: timeout: num: %s", num);
+				this->trace(PSTR("get_ulong: timeout: num: %s"), num);
 			}
 		}
 	}
 	else {
 		// FIXME/WHATEVER: This is pretty useless.
 		num = 0x00000000;
-		this->upstream->println("MOCK/get_ulong: 0xNNNNNNNN");
+		this->upstream->println(PSTR("MOCK/get_ulong: 0xNNNNNNNN"));
 		got_ulong = true;
 	}
 	return got_ulong;

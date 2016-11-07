@@ -227,6 +227,7 @@ class Pibeer(object):
             trace("Opening com port: %s" % (comport,))
 
             try:
+                #self.serial = serial.Serial(comport, baudrate='9600')
                 self.serial = serial.Serial(comport, baudrate='115200')
                 trace("connect_serial: connected: serial: %s" % (self.serial,))
             except FileNotFoundError as err:

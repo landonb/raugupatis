@@ -10,7 +10,7 @@
 #include "OneWire.h"
 
 // MAGIC_NUMBER: 12 is the pin number.
-const int onewire_pin = 12;
+const uint8_t onewire_pin = 12;
 OneWire ds(onewire_pin);
 
 void BlueDot::setup() {
@@ -23,7 +23,6 @@ void BlueDot::reset() {
 	ds.reset();
 }
 
-//Bluedot_Key_Status BlueDot::get_key_code(uint8_t ibutton_addr[8]) {
 Bluedot_Key_Status BlueDot::get_key_code(uint8_t ibutton_addr[IBUTTON_LEN]) {
 	Bluedot_Key_Status key_status = BLUEDOT_KEY_STATUS_UNKNOWN;
 
@@ -50,17 +49,18 @@ Bluedot_Key_Status BlueDot::get_key_code(uint8_t ibutton_addr[IBUTTON_LEN]) {
 const char* BlueDot::get_key_status_name(Bluedot_Key_Status key_status) {
 	switch (key_status) {
 		case BLUEDOT_KEY_STATUS_UNKNOWN:
-			return "ERROR: No such status: Unknown";
+			return PSTR("ERROR: No such status: Unknown");
 		case BLUEDOT_KEY_STATUS_VALID:
-			return "Valid";
+			return PSTR("Valid");
 		case BLUEDOT_KEY_STATUS_NOTHING_FOUND:
-			return "Nothing found";
+			return PSTR("Nothing found");
 		case BLUEDOT_KEY_STATUS_CRC_INVALID:
-			return "CRC Invalid";			
+			return PSTR("CRC Invalid");
 		case BLUEDOT_KEY_STATUS_NOT_DS1990A:
-			return "Not DS1990A";
+			return PSTR("Not DS1990A");
+		case _BLUEDOT_KEY_STATUS_COUNT:
 		default:
-			return "ERROR: No such status: Unreachable";
+			return PSTR("ERROR: No such status: int > count");
 	}
 }
 

@@ -16,42 +16,6 @@
 #include "pins.h"
 //#include "rfid.h"
 
-const char *StateMachine::get_state_name(void) {
-	// As far as I'm aware, these char*s are allocated by the compiler
-	// and are not allocated/released/managed at runtime.
-	switch (this->state) {
-		case STATE_NONE:
-			return "WHAH?!: NONE";
-		case STATE_BORED:
-			return "Bored";
-		case STATE_BUZZ_OFF:
-			return "Buff Off!";
-		case STATE_ENGAGING:
-			return "Engaging";			
-		case STATE_ENGAGED:
-			return "Engaged";
-		case STATE_PATIENCE:
-			return "Patience";
-		case STATE_POURING:
-			return "Pouring";
-		case STATE_GULPING:
-			return "Gulping";
-		case STATE_DEGAGING:
-			return "Disengaging";
-		case STATE_EIGHTYSIX:
-			return "Eighty sixxed";
-		case STATE_STEALING:
-			return "Stealing";
-		case STATE_STOLEN:
-			return "Stolen";
-		case STATE_SKULKING:
-			return "Skulking";
-		default:
-			// Unreachable.
-			return "Unbevievable";
-	}
-}
-
 void StateMachine::setup(Helladuino *hellaps) {
 	this->comm = hellaps->comm;
 	this->pins = hellaps->pins;
@@ -154,8 +118,8 @@ void StateMachine::check_beerme_state(void) {
 			// Skipping: STATE_STOLEN
 			// Skipping: STATE_SKULKING
 		) {
-			char* t_or_f = latest_beerme ? "true" : "false";
-			this->comm->trace("check_beerme_state: latest_beerme: %s", t_or_f);
+			char* t_or_f = latest_beerme ? PSTR("true") : PSTR("false");
+			this->comm->trace(PSTR("check_beerme_state: latest_beerme: %s"), t_or_f);
 
 			if (latest_beerme) {
 				if (this->state == STATE_BORED) {
@@ -209,15 +173,20 @@ void StateMachine::check_atoken_state(void) {
 
 		// FIXME: Probably comment this out unless swiped, else, too many traces.
 		this->comm->trace(
-			"check_atoken_state: this->bluedot->get_key_code: key_status: %s / ibutton_addr: %.*s",
-			this->bluedot->get_key_status_name(key_status),
-			8, ibutton_addr
+			PSTR("check_atoken_state: this->bluedot->get_key_code: key_status: %s"),
+			this->bluedot->get_key_status_name(key_status)
 		);
+// FIXME: See if this works now with the PSTR fixes:
+//		this->comm->trace(
+//			PSTR("check_atoken_state: this->bluedot->get_key_code: key_status: %s / ibutton_addr: %.*s"),
+//			this->bluedot->get_key_status_name(key_status),
+//			8, ibutton_addr
+//		);
 
 		if (key_status == BLUEDOT_KEY_STATUS_VALID) {
-			this->comm->trace("check_atoken_state: this->bluedot->get_key_code: ibutton_addr:");
+			this->comm->trace(PSTR("check_atoken_state: this->bluedot->get_key_code: ibutton_addr:"));
 			for (int i = 0; i < 8; i++) {
-				this->comm->trace(" index: %s / 0x%x", i, ibutton_addr[i]);
+				this->comm->trace(PSTR(" index: %s / 0x%x"), i, ibutton_addr[i]);
 			}
 
 			bool authenticated = this->comm->authenticate(ibutton_addr);
@@ -318,7 +287,7 @@ void StateMachine::check_timers_state(void) {
 
 	this->pins->animate(this->state, this->state_time_0);
 
-	//this->comm->trace("StateMachine::loop: Final state: %s", this->get_state_name());
+	//this->comm->trace(PSTR("StateMachine::loop: Final state: %s"), this->get_state_name());
 }
 
 void StateMachine::check_timers_pouring_or_stolen(unsigned long state_uptime) {
@@ -384,8 +353,8 @@ void StateMachine::transition(HellaState new_state) {
 	this->bluedot->reset();
 
 	this->comm->trace(
-		"StateMachine::transition: New state: %s at %d",
-		this->get_state_name(), 
+		PSTR("StateMachine::transition: New state: %s / time_0: %d"),
+		this->get_state_name(),
 		this->state_time_0
 	);
 }
@@ -404,4 +373,42 @@ void StateMachine::adjust_beerme_state(HellaState new_state) {
 	// Always make sure pins bool follows state's bool.
 	this->pins->set_beerme_state(this->beerme_state);
 }
+
+const char *StateMachine::get_state_name(void) {
+	return this->get_state_name(this->state);
+}
+
+const char *StateMachine::get_state_name(HellaState state) {
+	switch (state) {
+		case STATE_NONE:
+			return PSTR("WHAH?!: NONE");
+		case STATE_BORED:
+			return PSTR("Bored");
+		case STATE_BUZZ_OFF:
+			return PSTR("Buff Off!");
+		case STATE_ENGAGING:
+			return PSTR("Engaging");
+		case STATE_ENGAGED:
+			return PSTR("Engaged");
+		case STATE_PATIENCE:
+			return PSTR("Patience");
+		case STATE_POURING:
+			return PSTR("Pouring");
+		case STATE_GULPING:
+			return PSTR("Gulping");
+		case STATE_DEGAGING:
+			return PSTR("Disengaging");
+		case STATE_EIGHTYSIX:
+			return PSTR("Eighty sixxed");
+		case STATE_STEALING:
+			return PSTR("Stealing");
+		case STATE_STOLEN:
+			return PSTR("Stolen");
+		case STATE_SKULKING:
+			return PSTR("Skulking");
+		case _STATE_COUNT:
+		default:
+			return PSTR("Unbevievable");
+	}
+};
 

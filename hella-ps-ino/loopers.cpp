@@ -11,11 +11,18 @@
 
 // C++ /shim/ *noun* dog and pony show
 
-Helladuino hellaps;
+// Hrmm. Dynamically allocating this object saves a tiny but of SRAM.
+//   Helladuino hellaps;
+//     Global variables use 1,409 bytes (68%) of dynamic memory, leaving 639 bytes for local variables. Maximum is 2,048 bytes.
+//   Helladuino *hellaps;
+//     Global variables use 1,367 bytes (66%) of dynamic memory, leaving 681 bytes for local variables. Maximum is 2,048 bytes.
+Helladuino *hellaps;
 
 void loopers_setup()
 {
-	hellaps.setup();
+	hellaps = new Helladuino();
+	//hellaps.setup();
+	hellaps->setup();
 }
 
 // Loopers like to loop.
@@ -36,10 +43,12 @@ void loopers_loop()
 	//
 	//   https://www.arduino.cc/en/Reference/Interrupts
 
-	hellaps.loop();
+	//hellaps.loop();
+	hellaps->loop();
 }
 
 void contract(const bool assertion, const char *file, const unsigned long line) {
-	hellaps.comm->contract(assertion, file, line);
+	//hellaps.comm->contract(assertion, file, line);
+	hellaps->comm->contract(assertion, file, line);
 }
 
