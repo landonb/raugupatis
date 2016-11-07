@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.06
+// Last Modified: 2016.11.07
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -111,18 +111,6 @@ bool InputsOutputs::get_beerme_state(void) {
 
 void InputsOutputs::set_beerme_state(bool new_state) {
 	beerme_state_ = new_state;
-}
-
-void InputsOutputs::reset_beerme_state(bool new_state) {
-	if (false
-		|| (new_state == STATE_POURING)
-		|| (new_state == STATE_STOLEN)
-	) {
-		beerme_state_ = true;
-	}
-	else {
-		beerme_state_ = false;
-	}
 }
 
 unsigned long InputsOutputs::get_flowmeter_count(void) {

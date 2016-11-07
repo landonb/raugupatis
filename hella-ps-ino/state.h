@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.06
+// Last Modified: 2016.11.07
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -86,7 +86,6 @@ public:
 	// a toggle button until the user is considered logged out or
 	// deauthenticated or whatever we're calling it).
 	bool beerme_state = false;
-	bool desired_state = false;
 
 	// A malicious user can press and hold the Red button to bypass
 	// authentication and "steal" beer, as it were.
@@ -109,6 +108,8 @@ public:
 	void manage_current_state(void);
 
 	void transition(HellaState new_state);
+
+	void adjust_beerme_state(HellaState new_state);
 };
 
 #endif // __STATE_H__

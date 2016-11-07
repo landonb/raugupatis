@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.06
+// Last Modified: 2016.11.07
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -120,7 +120,6 @@ public:
 	// Runtime routines.
 	bool get_beerme_state(void);
 	void set_beerme_state(bool new_state);
-	void reset_beerme_state(bool new_state);
 	unsigned long get_flowmeter_count(void);
 	uint8_t check_steal_button(void);
 	void transition(HellaState new_state);
