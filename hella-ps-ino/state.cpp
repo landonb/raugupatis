@@ -7,6 +7,9 @@
 
 #include "state.h"
 
+// Include contract().
+#include "loopers.h"
+
 #include "bluedot.h"
 #include "comm.h"
 #include "hella-ps.h"
@@ -69,7 +72,7 @@ void StateMachine::check_stolen_state(void) {
 	// which are both in use (Green button and flowmeter), so we poll for the state
 	// of the steal button.
 	// NOTE: This means user has to keep the steal button pressed to remain in this state!
-	uint8_t steal_button_pressed = this->pins.check_steal_button();
+	uint8_t steal_button_pressed = this->pins->check_steal_button();
 	if (steal_button_pressed) {
 		if (this->state != STATE_EIGHTYSIX) {
 			// Except for the Bored state and Stolen states, any
@@ -130,7 +133,7 @@ void StateMachine::check_beerme_state(void) {
 	// last loop. We only care about action presses when the user is
 	// authenticated, and if we're not in an authenticated transitional state.
 
-	bool latest_beerme = this->pins.get_beerme_state();
+	bool latest_beerme = this->pins->get_beerme_state();
 
 	bool button_pressed = (latest_beerme != this->beerme_state);
 
@@ -167,7 +170,7 @@ void StateMachine::check_beerme_state(void) {
 				}
 				else {
 					// STATE_POURING. And latest_beerme? Shouldn't happen.
-					contract(false);
+					contract(false, __FILE__, __LINE__);
 				}
 			}
 			else {
@@ -177,7 +180,7 @@ void StateMachine::check_beerme_state(void) {
 				}
 				else {
 					// STATE_ENGAGED or STATE_DEGAGING. And !latest_beerme? Shouldn't happen.
-					contract(false);
+					contract(false, __FILE__, __LINE__);
 				}
 			}
 		}
@@ -202,22 +205,22 @@ void StateMachine::check_atoken_state(void) {
 	) {
 		// Check if a user swiped an RFID/iButton/AuthWand.
 		uint8_t ibutton_addr[8];
-		Bluedot_Key_Status key_status = this->bluedot.get_key_code(ibutton_addr);
+		Bluedot_Key_Status key_status = this->bluedot->get_key_code(ibutton_addr);
 
 		// FIXME: Probably comment this out unless swiped, else, too many traces.
 		this->comm->trace(
-			"check_atoken_state: this->bluedot.get_key_code: key_status: %s / ibutton_addr: %.*s"
-			this->bluedot.get_key_status_name(key_status),
-			8, ibutton_addr,
+			"check_atoken_state: this->bluedot->get_key_code: key_status: %s / ibutton_addr: %.*s",
+			this->bluedot->get_key_status_name(key_status),
+			8, ibutton_addr
 		);
 
 		if (key_status == BLUEDOT_KEY_STATUS_VALID) {
-			this->comm->trace("check_atoken_state: this->bluedot.get_key_code: ibutton_addr:");
+			this->comm->trace("check_atoken_state: this->bluedot->get_key_code: ibutton_addr:");
 			for (int i = 0; i < 8; i++) {
 				this->comm->trace(" index: %s / 0x%x", i, ibutton_addr[i]);
 			}
 
-			bool authenticated = this->comm.authenticate(ibutton_addr, this);
+			bool authenticated = this->comm->authenticate(ibutton_addr);
 			if (authenticated) {
 				this->transition(STATE_ENGAGING);
 			}
@@ -256,14 +259,14 @@ void StateMachine::check_timers_state(void) {
 			if (state_uptime >= timeouts.degaging) {
 				this->transition(STATE_BORED);
 			}
-			// else, this->pins.animate will handle the lights for this state.
+			// else, this->pins->animate will handle the lights for this state.
 			break;
 		case STATE_ENGAGING:
 			// An animation state. Become engaged when finished animating.
 			if (state_uptime >= timeouts.engaging) {
 				this->transition(STATE_ENGAGED);
 			}
-			// else, this->pins.animate will handle the lights for this state.
+			// else, this->pins->animate will handle the lights for this state.
 			break;
 		case STATE_ENGAGED:
 			// The engaged state. User can enabled beer with Green button.
@@ -282,18 +285,18 @@ void StateMachine::check_timers_state(void) {
 			if (state_uptime >= timeouts.degaging) {
 				this->transition(STATE_BORED);
 			}
-			// else, this->pins.animate will handle the lights for this state.
+			// else, this->pins->animate will handle the lights for this state.
 			break;
 		// Skipping: STATE_EIGHTYSIX
 		case STATE_STEALING:
 			// Unreachable/already handled.
-			contract(false);
+			contract(false, __FILE__, __LINE__);
 			break;
 			// An animation state. Become stolen when finished animating.
 			if (state_uptime >= timeouts.stealing) {
 				this->transition(STATE_STOLEN);
 			}
-			// else, this->pins.animate will handle the lights for this state.
+			// else, this->pins->animate will handle the lights for this state.
 			break;
 		// See below: STATE_TOLEN
 		case STATE_SKULKING:
@@ -301,7 +304,7 @@ void StateMachine::check_timers_state(void) {
 			if (state_uptime >= timeouts.skulking) {
 				this->transition(STATE_BORED);
 			}
-			// else, this->pins.animate will handle the lights for this state.
+			// else, this->pins->animate will handle the lights for this state.
 			break;
 		case STATE_POURING:
 		case STATE_STOLEN:
@@ -309,20 +312,20 @@ void StateMachine::check_timers_state(void) {
 			break;
 		default:
 			// Unreachable.
-			contract(false);
+			contract(false, __FILE__, __LINE__);
 			break;
 	}
 
-	this->pins.animate(this->state, this->state_time_0);
+	this->pins->animate(this->state, this->state_time_0);
 
 	//this->comm->trace("StateMachine::loop: Final state: %s", this->get_state_name());
 }
 
 void StateMachine::check_timers_pouring_or_stolen(unsigned long state_uptime) {
-	unsigned long pour_time_elapsed = pour_time_n - this->pour_time_0;
-
-	unsigned long pour_blip_n = this->pins.get_flowmeter_count();
+	unsigned long pour_blip_n = this->pins->get_flowmeter_count();
 	unsigned long pour_time_n = millis();
+
+	unsigned long pour_time_elapsed = pour_time_n - this->pour_time_0;
 
 	if (pour_blip_n == this->last_blip) {
 		// The beer has not moved! What is wrong with people?
@@ -349,9 +352,9 @@ void StateMachine::check_timers_pouring_or_stolen(unsigned long state_uptime) {
 	unsigned long report_time_elapsed = state_uptime - this->last_flow_report;
 	if (report_time_elapsed > timeouts.flow_updates) {
 		// FIXME: Send user identifier, like their token?
-FIXME: params
-		this->comm.update_state(
-			this->state,
+		this->comm->update_flow(
+			//this->state,
+			this->get_state_name(),
 			pour_blip_n - this->pour_blip_0,
 			pour_time_n - this->pour_time_0
 		);
@@ -360,23 +363,17 @@ FIXME: params
 }
 
 void StateMachine::transition(HellaState new_state) {
-
-
-FIXME: WHat?
-unsigned long state_duration = millis() - this->state_time_0;
-
-
 	this->state = new_state;
 	this->state_time_0 = millis();
 
 	if ((new_state == STATE_POURING) || (new_state == STATE_STOLEN)) {
-		this->pour_blip_0 = this->pins.get_flowmeter_count;
+		this->pour_blip_0 = this->pins->get_flowmeter_count();
 		this->pour_time_0 = millis();
 		this->last_blip = this->pour_blip_0;
 		this->last_time = this->pour_time_0;
 	}
 
-	this->pins.transition(new_state);
+	this->pins->transition(new_state);
 
 	this->adjust_beerme_state(new_state);
 
@@ -384,16 +381,16 @@ unsigned long state_duration = millis() - this->state_time_0;
 	// so we don't have to worry about it at other times (since the hardware
 	// might be slow to clear, we don't do it during loop()).
 	//rfid_reset();
-	this->bluedot.reset();
+	this->bluedot->reset();
 
 	this->comm->trace(
 		"StateMachine::transition: New state: %s at %d",
 		this->get_state_name(), 
-		this->state_time_0,
+		this->state_time_0
 	);
 }
 
-void InputsOutputs::adjust_beerme_state(HellaState new_state) {
+void StateMachine::adjust_beerme_state(HellaState new_state) {
 	if (false
 		|| (new_state == STATE_POURING)
 		|| (new_state == STATE_STOLEN)
@@ -405,6 +402,6 @@ void InputsOutputs::adjust_beerme_state(HellaState new_state) {
 	}
 
 	// Always make sure pins bool follows state's bool.
-	this->pins.set_beerme_state(this->beerme_state);
+	this->pins->set_beerme_state(this->beerme_state);
 }
 

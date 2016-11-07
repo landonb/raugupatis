@@ -15,13 +15,13 @@ volatile unsigned long flowmeter_count_ = 0;
 // Setup routine.
 
 void InputsOutputs::setup() {
-	hook_beerme_button();
-	hook_flowmeter();
-	hook_steal_button();
-	hook_indicator_lights();
-	hook_annoying_alarms();
-	hook_test_indicator();
-	hook_beer_solenoid();
+	this->hook_beerme_button();
+	this->hook_flowmeter();
+	this->hook_steal_button();
+	this->hook_indicator_lights();
+	this->hook_annoying_alarms();
+	this->hook_test_indicator();
+	this->hook_beer_solenoid();
 }
 
 // ISRs.
@@ -56,7 +56,7 @@ void InputsOutputs::hook_beerme_button(void) {
 	//  an [ee] that falling edge is most reliable.
 	attachInterrupt(
 		digitalPinToInterrupt(pinouts.action_button),
-		on_action_button_isr,
+		InputsOutputs::on_action_button_isr,
 		FALLING
 	);
 }
@@ -65,7 +65,7 @@ void InputsOutputs::hook_flowmeter(void) {
 	pinMode(pinouts.flow_meter, INPUT_PULLUP);
 	attachInterrupt(
 		digitalPinToInterrupt(pinouts.flow_meter),
-		on_flowmeter_isr,
+		InputsOutputs::on_flowmeter_isr,
 		FALLING
 	);
 }

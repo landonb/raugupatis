@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.06
+// Last Modified: 2016.11.07
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -41,6 +41,12 @@ void CommUpstream::vtrace(const char *fmt, va_list argp) {
 	this->put_msg("bye");
 }
 
+bool CommUpstream::contract(const bool assertion, const char *file, const unsigned long line) {
+	if (!assertion) {
+		this->trace("CONTRACT: Failed in file: %s / line: %d", file, line);
+	}
+}
+
 bool CommUpstream::authenticate(const char* token) {
 	bool authenticated = false;
 
@@ -80,29 +86,27 @@ bool CommUpstream::authenticate(const char* token) {
 	return authenticated;
 }
 
-void CommUpstream::update_flow() {
-
-// FIXME: Impl flowmeter and call this fcn., update_flow.
-
-	this->trace("authenticate: updating flow: %s", token);
+void CommUpstream::update_flow(
+	const char* state_name,
+	unsigned long elapsed_blip,
+	unsigned long elapsed_time
+) {
+	this->trace("authenticate: updating flow: %s", state_name);
 
 	// Start of message.
 	this->put_msg("hi");
-	// Command.
-	this->put_msg("flow");
-	// Payload.
-
-// FIXME: Flowmeter: Send current count or delta or whatever.
-	//this->put_byte();
-
+	// Command(s) and payload.
+	// - State name.
+	this->put_msg("state");
+	this->put_msg(state_name);
+	// - Blips elapsed in this state.
+	this->put_msg("blips");
+	this->put_ulong(elapsed_blip);
+	// - Msecs. elapsed in this state.
+	this->put_msg("msecs");
+	this->put_ulong(elapsed_time);
 	// Outro.
 	this->put_msg("bye");
-}
-
-void CommUpstream::update_state(HellaState curr_state) {
-
-// FIXME: This guy...
-
 }
 
 void CommUpstream::put_msg(const char *msg) {
@@ -110,7 +114,7 @@ void CommUpstream::put_msg(const char *msg) {
 		this->upstream->print("MOCK/put_msg: ");
 	}
 	this->upstream->println(msg);
-
+}
 
 bool CommUpstream::get_msg(char *msg, size_t nbytes) {
 	if (!DEBUG) {
@@ -119,7 +123,7 @@ bool CommUpstream::get_msg(char *msg, size_t nbytes) {
 		if (bytes_read == nbytes) {
 			this->trace("get_msg: WARNING: read max nbytes: %d",  nbytes);
 		}
-		msg.trim();
+		this->trim_msg(msg, nbytes);
 	}
 	else {
 		// FIXME/Whatever: This is useless.
@@ -128,18 +132,40 @@ bool CommUpstream::get_msg(char *msg, size_t nbytes) {
 	return msg;
 }
 
-void CommUpstream::put_byte(uint8_t byte) {
-	if (!DEBUG) {
-		this->upstream->write(byte);
-// FIXME: Make sure \n rounds out; might need a fcn to help
+void CommUpstream::trim_msg(char *msg, size_t nbytes) {
+	// [lb] not sure we should use strlen() in case there is not null byte.
+	int msg_len = 0;
+	while (msg_len < nbytes) {
+		if (msg[msg_len] == '\0') {
+			break;
+		}
+		// else, keep looking.
 	}
-	else {
-		this->upstream->print("MOCK/put_byte: 0x");
-		this->upstream->println(byte, HEX);
+	if (msg_len < nbytes) {
+		msg_len -= 1;
+		while (msg_len >= 0) {
+			if (isspace(msg[msg_len])) {
+				msg[msg_len] = '\0';
+			}
+			else {
+				// All done.
+				break;
+			}
+			msg_len -= 1;
+		}
 	}
 }
 
-bool CommUpstream::get_byte(uint8_t &incoming_byte) {
+// FIXME: put_byte and get_byte not used.
+void CommUpstream::put_byte(uint8_t byte) {
+	if (DEBUG) {
+		this->upstream->print("MOCK/put_byte: ");
+	}
+	this->upstream->println(byte, HEX);
+}
+
+// FIXME: put_byte and get_byte not used.
+bool CommUpstream::get_byte(uint8_t &byte) {
 	// Serial.readBytes() blocks until the timeout.
 	// Serial.setTimeout(time) defaults to 1000 (milliseconds).
 	// Serial.read() doesn't block as far as I [lb] can tell.
@@ -154,16 +180,65 @@ bool CommUpstream::get_byte(uint8_t &incoming_byte) {
 			delay(100);
 		}
 		if (this->upstream->available() > 0) {
-			incoming_byte = this->upstream->read();
+			byte = this->upstream->read();
 			got_byte = true;
 		}
 	}
 	else {
 		// FIXME/WHATEVER: This is pretty useless.
-		incoming_byte = 0x00;
+		byte = 0x00;
 		this->upstream->println("MOCK/get_byte: 0xNN");
 		got_byte = true;
 	}
 	return got_byte;
+}
+
+void CommUpstream::put_ulong(unsigned long num) {
+	if (DEBUG) {
+		this->upstream->print("MOCK/put_ulong: ");
+	}
+	for (int i = 0; i < 4; i++) {
+		uint8_t byte = (num & 0xFF);
+		num >>= 8;
+		//this->upstream->print(byte, HEX);
+		this->upstream->write(byte);
+	}
+// FIXME: Does this work to just print a newline?:
+	this->upstream->println("");
+}
+
+// FIXME: This fcn. is not called.
+bool CommUpstream::get_ulong(unsigned long &num) {
+	bool got_ulong = false;
+	if (!DEBUG) {
+		num = 0;
+		int got_n = 0;
+		while (got_n < 4) {
+			if (this->upstream->available() == 0) {
+				// Should we delay?
+				//delay(500);
+				delay(100);
+			}
+			if (this->upstream->available() > 0) {
+				uint8_t byte = this->upstream->read();
+				num |= (byte << (8 * got_n));
+				got_n += 1;
+				if (got_n == 4) {
+					got_ulong = true;
+					break;
+				}
+			}
+			else {
+				this->trace("get_ulong: timeout: num: %s", num);
+			}
+		}
+	}
+	else {
+		// FIXME/WHATEVER: This is pretty useless.
+		num = 0x00000000;
+		this->upstream->println("MOCK/get_ulong: 0xNNNNNNNN");
+		got_ulong = true;
+	}
+	return got_ulong;
 }
 

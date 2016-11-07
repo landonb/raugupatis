@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.06
+// Last Modified: 2016.11.07
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -46,8 +46,8 @@ Bluedot_Key_Status BlueDot::get_key_code(uint8_t ibutton_addr[8]) {
 	return key_status;
 }
 
-const char* BlueDot::get_key_status_name(void) {
-	switch (this->state) {
+const char* BlueDot::get_key_status_name(Bluedot_Key_Status key_status) {
+	switch (key_status) {
 		case BLUEDOT_KEY_STATUS_UNKNOWN:
 			return "ERROR: No such status: Unknown";
 		case BLUEDOT_KEY_STATUS_VALID:

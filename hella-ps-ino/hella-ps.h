@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.06
+// Last Modified: 2016.11.07
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -34,7 +34,4 @@ public:
 };
 
 #endif // __HELLA_PS_H__
-
-
-FIXME: Remove all String usage
 

@@ -104,13 +104,15 @@ struct {
 class InputsOutputs {
 public:
 
-	void setup(Helladuino *hellaps);
+	void setup();
+
+	// ISRs.
+	static void on_action_button_isr(void);
+	static void on_flowmeter_isr(void);
 
 	// Setup subroutines.
 	void hook_beerme_button(void);
-	void on_action_button_isr(void);
 	void hook_flowmeter(void);
-	void on_flowmeter_isr(void);
 	void hook_steal_button(void);
 	void hook_indicator_lights(void);
 	void hook_annoying_alarms(void);
