@@ -18,7 +18,11 @@ struct {
 	const int stealing = 4000;
 	const int skulking = 3000;
 
+	const int wait_pouring = 2121;
 	const int pouring_idle = 7654;
+
+	// How often to send flow reports to the Pi.
+	const int flow_updates = 200;
 
 } timeouts;
 
@@ -96,6 +100,7 @@ public:
 	unsigned long pour_time_0 = 0;
 	unsigned long last_blip = 0;
 	unsigned long last_time = 0;
+	unsigned long last_flow_report = 0;
 
 	const char* get_state_name(void);
 
@@ -105,7 +110,8 @@ public:
 	void check_stolen_state(void);
 	void check_beerme_state(void);
 	void check_atoken_state(void);
-	void manage_current_state(void);
+	void check_timers_state(void);
+	void check_timers_pouring_or_stolen(unsigned long state_uptime);
 
 	void transition(HellaState new_state);
 

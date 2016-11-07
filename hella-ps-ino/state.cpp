@@ -249,19 +249,8 @@ void StateMachine::check_timers_state(void) {
 //FIXME: Check flowmeter and timeout if not pouring beer.
 	// If in another state, check the timeout.
 
-	int state_uptime = millis() - this->state_time_0;
+	unsigned long state_uptime = millis() - this->state_time_0;
 	switch (this->state) {
-		// Skipping: STATE_NONE
-		// Skipping: STATE_BORED
-		|| (this->state == )
-		// Skipping: STATE_PATIENCE
-		|| (this->state == STATE_POURING)
-		// Skipping: STATE_GULPING
-		|| (this->state == STATE_DEGAGING)
-		// Skipping: STATE_EIGHTYSIX
-		// Skipping: STATE_STEALING
-		// Skipping: STATE_STOLEN
-		// Skipping: STATE_SKULKING
 		case STATE_BUZZ_OFF:
 			// An animation state. Resume being bored when finished animating.
 			if (state_uptime >= timeouts.degaging) {
@@ -316,10 +305,11 @@ void StateMachine::check_timers_state(void) {
 			break;
 		case STATE_POURING:
 		case STATE_STOLEN:
-			this->loop_pouring_or_stolen();
+			this->check_timers_pouring_or_stolen(state_uptime);
 			break;
 		default:
 			// Unreachable.
+			contract(false);
 			break;
 	}
 
@@ -328,17 +318,25 @@ void StateMachine::check_timers_state(void) {
 	//this->comm->trace("StateMachine::loop: Final state: %s", this->get_state_name());
 }
 
-void StateMachine::loop_pouring_or_stolen() {
+void StateMachine::check_timers_pouring_or_stolen(unsigned long state_uptime) {
+	unsigned long pour_time_elapsed = pour_time_n - this->pour_time_0;
 
 	unsigned long pour_blip_n = this->pins.get_flowmeter_count();
 	unsigned long pour_time_n = millis();
-
-	unsigned long pour_time_elapsed = pour_time_n - this->pour_time_0;
 
 	if (pour_blip_n == this->last_blip) {
 		// The beer has not moved! What is wrong with people?
 		unsigned long void_time_elapsed = pour_time_n - this->last_time;
 		if (void_time_elapsed > timeouts.pouring_idle) {
+			// Gulping immediately closes the solenoid. We'll see
+			// how popular this is, especially if flowmeter isn't
+			// connected!
+			this->transition(STATE_GULPING);
+		}
+		else if (void_time_elapsed > timeouts.wait_pouring) {
+			// We could make a new state for this, but Degaging lets
+			// user recover and does animation.
+			this->transition(STATE_DEGAGING);
 		}
 	}
 	else {
@@ -348,20 +346,17 @@ void StateMachine::loop_pouring_or_stolen() {
 	}
 
 	// Update the pi every once in a while (but not every loop()).
-	if () {
+	unsigned long report_time_elapsed = state_uptime - this->last_flow_report;
+	if (report_time_elapsed > timeouts.flow_updates) {
+		// FIXME: Send user identifier, like their token?
+FIXME: params
+		this->comm.update_state(
+			this->state,
+			pour_blip_n - this->pour_blip_0,
+			pour_time_n - this->pour_time_0
+		);
+		this->last_flow_report = state_uptime;
 	}
-
-	if (
-						
-						// No-op. Stay in state.
-// FIXME/LATER: If beer starts flowing, resume STATE_ENGAGED. -- RESET TIMEOUT
-// get_flowmeter_count -- send to Pi
-this->comm.update_state(new_state, state_duration);
-						break;
-						// No-op. Stay in state.
-// get_flowmeter_count -- send to Pi
-	// FIXME/LATER: If beer starts flowing, resume STATE_ENGAGED.
-
 }
 
 void StateMachine::transition(HellaState new_state) {
@@ -373,7 +368,6 @@ unsigned long state_duration = millis() - this->state_time_0;
 
 	this->state = new_state;
 	this->state_time_0 = millis();
-	this->pins.transition(new_state);
 
 	if ((new_state == STATE_POURING) || (new_state == STATE_STOLEN)) {
 		this->pour_blip_0 = this->pins.get_flowmeter_count;
@@ -381,6 +375,8 @@ unsigned long state_duration = millis() - this->state_time_0;
 		this->last_blip = this->pour_blip_0;
 		this->last_time = this->pour_time_0;
 	}
+
+	this->pins.transition(new_state);
 
 	this->adjust_beerme_state(new_state);
 
