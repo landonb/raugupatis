@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.04
+// Last Modified: 2016.11.06
 // Project Page: https://github.com/landonb/raugupatis
 // Adapted from code by: Aaron Weiss, aaron at sparkfun dot com
 // Description: Arduino interface to RFID Eval 13.56MHz Shield.
@@ -43,12 +43,12 @@ void rfid_check_for_notag(void);
 void rfid_halt(void);
 void rfid_parse(void);
 void rfid_print_serial(void);
-boolean rfid_read_serial(void);
+bool rfid_read_serial(void);
 void rfid_reset(void);
 void rfid_seek(void);
 void rfid_set_flag(void);
 
-boolean rfid_get_tag(int rfid_tag[4]);
+bool rfid_get_tag(int rfid_tag[4]);
 
 #endif // __RFID_H__
 

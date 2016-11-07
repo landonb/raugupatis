@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.04
+// Last Modified: 2016.11.06
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -6,88 +6,109 @@
 #ifndef __STATE_H__
 #define __STATE_H__
 
-// FIXME: Switch DEBUG to false when deploying to production.
-//const boolean DEBUG = false;
-const boolean DEBUG = true;
+#include "hella-ps.h"
 
-const int timeout_engaging = 666;
-const int timeout_degaging = 3210;
+struct {
 
-const int timeout_engaged_warning = 5000;
-// FIXME: Hahaha, this might be too short to pour a beer.
-//        Specifically, while user is pouring beer, this is no real
-//          interaction with the system.
-//        FIXME: When flowmeter is added, detecting flow should reset state_time_0.
-//               
-const int timeout_engaged_de_auth = 10000;
+	const int engaging = 666;
+	const int engaged_degaging = 5000;
+
+	const int degaging = 3210;
+
+	const int stealing = 4000;
+	const int skulking = 3000;
+
+	const int pouring_idle = 7654;
+
+} timeouts;
 
 enum HellaState {
 	// An illegal state, just so unset/0/nil/null/NULL/None isn't valid.
 	STATE_NONE,
 	// The idle state is the "bored" state.
 	STATE_BORED,
-	// When the used swipes an RFID, they'll transition to an
-	// intermediate state so we can do a light and sound show.
+	// When the user swipes an RFID or iButton or authentication wand, we'll
+	// transition to an intermediate state so we can do a light and sound show.
+	// - If not authorized:
 	STATE_BUZZ_OFF,
+	// - If authorized:
 	STATE_ENGAGING,
-	// If the user swiped an RFID, was authenticated, and
-	// transitioned through the light and sound state, they'll
-	// transition to the engaged state -- we're ready!
+	// After the STATE_ENGAGING animation, we're engaged and the
+	// user can press the Big Green Button to START_POURING beer.
 	STATE_ENGAGED,
-	// For timing out on inactivity.
-	STATE_DEGAGING,
-	// Once engaged, the user can transition to and from the
-	// pouring state (basically open/close the solenoid).
+	// I guess we can't just open the solenoid on Green button press,
+	// but instead we must entertain first.
+	STATE_PATIENCE,
+	// Galvanize! Push the button, bruh.
+	// Open/close the solenoid, and send flow #s to the Pi.
 	STATE_POURING,
+	// For when user is done pouring and presses Green button to be done.
+
+	
+// FIXME: Let new user log on during these 2 states?
+	STATE_GULPING,
+	// For timing out on inactivity.
+	// NOTE: User can recover from STATE_DEGAGING if they press
+	//       Big Green Button and go to STATE_POURING.
+	STATE_DEGAGING,
+
+
+	// There are 3 ways user can logoff:
+	// - 1) automatic timeout (STATE_DEGAGING)
+	// - 2) another user logs on (STATE_ENGAGING)
+	// - 3) authenticated user presses Big Red Button (STATE_EIGHTYSIX)
+	STATE_EIGHTYSIX,
 	// The special stolen state bypasses all other states.
-	// I know, right!
+	// - I know, right!
+	STATE_STEALING,
+	// STATE_STOLEN is analogous to STATE_POURING but without auth'ed user.
 	STATE_STOLEN,
+	// The skulking state happens when user releases the Big Red Button,
+	// so that we can further humiliate them. This also delays any other
+	// user or non-user (another stealer) from interacting with/engaging
+	// the system while we proceed through a thoroughly obnoxious animation.
+	STATE_SKULKING,
 };
 
-// MAYBE: Use this, or not, once we implement the Pi side.
-enum TokenStatus {
-	TOKEN_UNSET,
-	TOKEN_ACCEPTED,
-	TOKEN_REJECTED,
-};
-
-//enum ActionDesired {
-//	ACTION_NONE,
-//	ACTION_POUR,
-//	ACTION_STOP,
-//};
-
-class Helladuino {
+class StateMachine {
 public:
+
+	CommUpstream *comm = NULL;
+	InputsOutputs *pins = NULL;
+	BlueDot *bluedot = NULL;
 
 	HellaState state = STATE_BORED;
 
 	unsigned long state_time_0 = 0;
 
-	String user_token = "";
-	TokenStatus token_status = TOKEN_UNSET;
+	// An authenticated user that presses the Green button enters
+	// the beerme_state (and pressing button again leaves it; it's
+	// a toggle button until the user is considered logged out or
+	// deauthenticated or whatever we're calling it).
+	bool beerme_state = false;
+	bool desired_state = false;
 
-	boolean action_state = false;
-	// pins.cpp will set action_desired from its ISR.
-	boolean action_desired = false;
+	// A malicious user can press and hold the Red button to bypass
+	// authentication and "steal" beer, as it were.
+	bool steal_state = false;
 
-	boolean steal_state = false;
+	// Use the flowmeter to track each person's pour.
+	unsigned long pour_blip_0 = 0;
+	unsigned long pour_time_0 = 0;
+	unsigned long last_blip = 0;
+	unsigned long last_time = 0;
 
-	// During testing, the USB wire is used for dumping trace messages.
-	// When hooked up to the Raspberry Pi, it's used for talking Pibeer.
-	HardwareSerial *upstream = NULL;
+	const char* get_state_name(void);
 
-	// Interface.
-	void setup(void);
+	void setup(Helladuino *hellaps);
 	void loop(void);
-	//
-	String get_state_name(void);
-	void trace(const String &s);
-	//void put_msg(const String &s);
-	void put_byte(uint8_t byte);
-	boolean get_byte(uint8_t& incoming_byte);
-	// State changes.
-	void state_transition(HellaState new_state);
+
+	void check_stolen_state(void);
+	void check_beerme_state(void);
+	void check_atoken_state(void);
+	void manage_current_state(void);
+
+	void transition(HellaState new_state);
 };
 
 #endif // __STATE_H__

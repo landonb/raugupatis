@@ -2,7 +2,7 @@
 #  -*- coding: utf-8 -*-
 # File: beerme.py
 # Author: Landon Bouma
-# Last Modified: 2016.11.04
+# Last Modified: 2016.11.06
 # Project Page: https://github.com/landonb/raugupatis
 # License: GPLv3
 
@@ -186,7 +186,7 @@ class Pibeer(object):
 			trace("Opening com port: %s" % (comport,))
 
 			try:
-				self.serial = serial.Serial(comport)
+				self.serial = serial.Serial(comport, baudrate='115200')
 				trace("connect_serial: connected: serial: %s" % (self.serial,))
 			except FileNotFoundError as err:
 				# E.g., FileNotFoundError: [Errno 2] No such file or directory: '/dev/ttyACM0'
@@ -247,7 +247,9 @@ class Pibeer(object):
 			assert(len(next_ch_) == 1)
 			# next_ch_ is a bytes, which we can access like a list.
 			if next_ch_[0] != 0:
-				raise BeermeSerialException("WARNING: Unexpected request: Header not NULL byte: %s" % (next_ch_,))
+				raise BeermeSerialException(
+					"WARNING: Unexpected request: Header not NULL byte: %s" % (next_ch_,)
+				)
 			found_header = True
 		return found_header
 

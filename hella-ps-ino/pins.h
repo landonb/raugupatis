@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.04
+// Last Modified: 2016.11.06
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -99,26 +99,33 @@ struct {
 	// Inline beer line solenoid.
 	const int beer_solenoid = 5;
 
-} pins;
+} pinouts;
 
-// Setup routine.
-void pins_setup(void);
-// Setup subroutines.
-void hook_action_button(void);
-void on_action_button_isr(void);
-void hook_flowmeter(void);
-void on_flowmeter_isr(void);
-void hook_steal_button(void);
-void hook_indicator_lights(void);
-void hook_annoying_alarms(void);
-void hook_test_indicator(void);
-void hook_beer_solenoid(void);
-// Main application loop.
-void pins_loop(Helladuino *hellaps);
-// Loop helpers.
-uint8_t check_steal_button(void);
+class InputsOutputs {
+public:
 
-void pins_transition(HellaState new_state);
+	void setup(Helladuino *hellaps);
+
+	// Setup subroutines.
+	void hook_beerme_button(void);
+	void on_action_button_isr(void);
+	void hook_flowmeter(void);
+	void on_flowmeter_isr(void);
+	void hook_steal_button(void);
+	void hook_indicator_lights(void);
+	void hook_annoying_alarms(void);
+	void hook_test_indicator(void);
+	void hook_beer_solenoid(void);
+
+	// Runtime routines.
+	bool get_beerme_state(void);
+	void set_beerme_state(bool new_state);
+	void reset_beerme_state(bool new_state);
+	unsigned long get_flowmeter_count(void);
+	uint8_t check_steal_button(void);
+	void transition(HellaState new_state);
+	void animate(HellaState new_state, unsigned long state_time_0);
+};
 
 #endif // __PINS_H__
 

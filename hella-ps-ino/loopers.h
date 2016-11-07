@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.03
+// Last Modified: 2016.11.06
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -6,7 +6,7 @@
 #ifndef __LOOPERS_H__
 #define __LOOPERS_H__
 
-#include "state.h"
+#include "hella-ps.h"
 
 void loopers_setup(void);
 void loopers_loop(void);
@@ -20,7 +20,7 @@ void loopers_setup()
 	hellaps.setup();
 }
 
-// Loopers Like to Loop
+// Loopers like to loop.
 void loopers_loop()
 {
 	// 2016-11-04: [lb] learns Wiring

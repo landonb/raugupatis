@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.04
+// Last Modified: 2016.11.06
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -18,7 +18,7 @@ SoftwareSerial rfid(7, 8);
 
 // Globals.
 int rfid_resp[11];
-boolean rfid_found = false;
+bool rfid_found = false;
 
 // Built-in Arduino one-time setup routine.
 void rfid_setup() {
@@ -89,7 +89,7 @@ void rfid_print_serial() {
 	}
 }
 
-boolean rfid_read_serial() {
+bool rfid_read_serial() {
 	rfid_seek();
 	delay(10);
 	rfid_parse();
@@ -98,13 +98,13 @@ boolean rfid_read_serial() {
 	return rfid_found;
 }
 
-boolean rfid_get_tag(int rfid_tag[4]) {
+bool rfid_get_tag(int rfid_tag[4]) {
 	rfid_tag[0] = 0;
 	rfid_tag[1] = 0;
 	rfid_tag[2] = 0;
 	rfid_tag[3] = 0;
 
-	boolean rfid_found_ = rfid_read_serial();
+	bool rfid_found_ = rfid_read_serial();
 	if (rfid_found_) {
 		rfid_tag[0] = rfid_resp[8];
 		rfid_tag[1] = rfid_resp[7];
