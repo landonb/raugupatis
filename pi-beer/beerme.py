@@ -268,20 +268,15 @@ class Pibeer(object):
         while True:
             next_ch_ = self.serial.read(1)
             if len(next_ch_):
-                if next_ch_ == '\n':
-#
-                    import pdb;pdb.set_trace()
-
+                #char = chr(next_ch_[0])
+                char = next_ch_.decode('utf-8')
+                if char == '\r':
+                    # Skip carriage return.
+                    continue
+                if char == '\n':
                     # All done.
                     break
-                if next_ch_ == '\r':
-#
-                    import pdb;pdb.set_trace()
-
-                    # All done.
-                    break
-                #line += chr(next_ch_[0])
-                line += next_ch_.decode('utf-8')
+                line += char
             else:
                 # Timeout.
                 if line:
