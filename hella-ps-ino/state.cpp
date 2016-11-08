@@ -299,11 +299,7 @@ void StateMachine::check_timers_state(void) {
 			contract(false, __FILE__, __LINE__);
 
 // 2016-11-07: This is firing			
-			this->comm->trace_P(PSTR("check_beerme_state: latest_beerme: %s"), t_or_f);
 			this->comm->trace_P(PSTR("check_beerme_state: state: %d"), this->state);
-			
-
-
 
 			break;
 	}
