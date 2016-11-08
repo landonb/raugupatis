@@ -118,6 +118,7 @@ class PibeerParser(argparse.ArgumentParser):
     def __init__(self):
         argparse.ArgumentParser.__init__(self)
         self.cli_opts = None
+        self.found_work_last_time = True
 
     def get_opts(self):
         self.prepare()
@@ -281,19 +282,16 @@ class Pibeer(object):
                 # Timeout.
                 if line:
                     trace("WARNING: read_line_serial: timeout on line: %s" % (line,))
-
-#
-                    import pdb;pdb.set_trace()
                     pass
-
                 line = None
                 break
-        trace("read_line_serial: line: %s" % (line,))
+        #trace("read_line_serial: line: %s" % (line,))
         return line
 
     def look_for_work(self):
         found_work = True
-        trace("Looking for work")
+        if self.found_work_last_time:
+            trace("Looking for work")
         intro = self.read_line_serial()
         if intro:
             if intro != 'hi':
@@ -313,6 +311,7 @@ class Pibeer(object):
         else:
             # No intro; no work.
             found_work = False
+        self.found_work_last_time = found_work
         return found_work
 
     def look_for_header(self):
