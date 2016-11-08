@@ -4,7 +4,7 @@
 """
 # File: beerme.py
 # Author: Landon Bouma
-# Last Modified: 2016.11.07
+# Last Modified: 2016.11.08
 # Project Page: https://github.com/landonb/raugupatis
 # License: GPLv3
 
@@ -146,7 +146,7 @@ class PibeerParser(argparse.ArgumentParser):
 
         self.add_argument(
             '-D', '--device', dest='serial_dev',
-            action='store', type=str, required=True,
+            action='store', type=str, required=False,
             help='Serial device, e.g., /dev/ttyACM0'
         )
 
