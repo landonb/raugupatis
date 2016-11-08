@@ -25,10 +25,17 @@ void StateMachine::setup(Helladuino *hellaps) {
 }
 
 void StateMachine::loop(void) {
+
 	this->check_stolen_state();
+
 	this->check_beerme_state();
+
 	this->check_atoken_state();
+
 	this->check_timers_state();
+
+this->comm->trace_P0(PSTR("StateMachine::loop: delay 2500..."));
+delay(2500);
 }
 
 void StateMachine::check_stolen_state(void) {
@@ -119,7 +126,8 @@ void StateMachine::check_beerme_state(void) {
 			// Skipping: STATE_SKULKING
 		) {
 			char* t_or_f = latest_beerme ? PSTR("true") : PSTR("false");
-			this->comm->trace(PSTR("check_beerme_state: latest_beerme: %s"), t_or_f);
+// PSTR: HEREHERE
+			this->comm->trace_P(PSTR("check_beerme_state: latest_beerme: %s"), t_or_f);
 
 			if (latest_beerme) {
 				if (this->state == STATE_BORED) {
@@ -172,21 +180,27 @@ void StateMachine::check_atoken_state(void) {
 		Bluedot_Key_Status key_status = this->bluedot->get_key_code(ibutton_addr);
 
 		// FIXME: Probably comment this out unless swiped, else, too many traces.
-		this->comm->trace(
-			PSTR("check_atoken_state: this->bluedot->get_key_code: key_status: %s"),
-			this->bluedot->get_key_status_name(key_status)
+// PSTR: HEREHERE
+//		this->comm->trace_P(
+//			PSTR("check_atoken_state: this->bluedot->get_key_code: key_status: %s"),
+//			this->bluedot->get_key_status_name(key_status)
+//		);
+		this->comm->trace_P(
+			PSTR("check_atoken_state: this->bluedot->get_key_code: key_status: %d"),
+			key_status
 		);
 // FIXME: See if this works now with the PSTR fixes:
-//		this->comm->trace(
+//		this->comm->trace_P(
 //			PSTR("check_atoken_state: this->bluedot->get_key_code: key_status: %s / ibutton_addr: %.*s"),
 //			this->bluedot->get_key_status_name(key_status),
 //			8, ibutton_addr
 //		);
 
 		if (key_status == BLUEDOT_KEY_STATUS_VALID) {
-			this->comm->trace(PSTR("check_atoken_state: this->bluedot->get_key_code: ibutton_addr:"));
+			this->comm->trace_P0(PSTR("check_atoken_state: this->bluedot->get_key_code: ibutton_addr:"));
 			for (int i = 0; i < 8; i++) {
-				this->comm->trace(PSTR(" index: %s / 0x%x"), i, ibutton_addr[i]);
+// PSTR: HEREHERE
+				this->comm->trace_P(PSTR(" index: %s / 0x%x"), i, ibutton_addr[i]);
 			}
 
 			bool authenticated = this->comm->authenticate(ibutton_addr);
@@ -287,7 +301,7 @@ void StateMachine::check_timers_state(void) {
 
 	this->pins->animate(this->state, this->state_time_0);
 
-	//this->comm->trace(PSTR("StateMachine::loop: Final state: %s"), this->get_state_name());
+	//this->comm->trace_P(PSTR("StateMachine::loop: Final state: %s"), this->get_state_name());
 }
 
 void StateMachine::check_timers_pouring_or_stolen(unsigned long state_uptime) {
@@ -352,9 +366,24 @@ void StateMachine::transition(HellaState new_state) {
 	//rfid_reset();
 	this->bluedot->reset();
 
-	this->comm->trace(
-		PSTR("StateMachine::transition: New state: %s / time_0: %d"),
-		this->get_state_name(),
+
+//	const char * state_name = this->get_state_name();
+//	while (pgm_read_byte(state_name) != '\0') {
+//		//this->upstream->print(pgm_read_byte(msg++));
+//		this->upstream->write(pgm_read_byte(state_name++));
+//	}
+	
+
+// PSTR: HEREHERE
+	this->comm->trace_P(
+
+//		PSTR("StateMachine::transition: New state: %s / time_0: %d"),
+// FIXME: PSTR problem
+//		this->get_state_name(),
+
+		PSTR("StateMachine::transition: New state: %d / time_0: %d"),
+		this->state,
+
 		this->state_time_0
 	);
 }

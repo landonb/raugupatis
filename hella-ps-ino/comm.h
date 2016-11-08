@@ -20,6 +20,14 @@ public:
 	void setup(void);
 
 	void trace(const char *msg, ...);
+	void vtrace(const char *fmt, va_list argp);
+	void trace_P(const char *fmt, ...);
+	void trace_P0(const char *fmt);
+	void vtrace_P(const char *fmt, va_list argp);
+	//
+	void vtrace_payload(const char *payload);
+
+	bool contract(const bool assertion, const char *file, const unsigned long line);
 
 	// Pibeer API.
 
@@ -31,16 +39,15 @@ public:
 		unsigned long elapsed_time
 	);
 
-	void vtrace(const char *fmt, va_list argp);
-	bool contract(const bool assertion, const char *file, const unsigned long line);
-
-private:
+//private:
 	bool get_byte(uint8_t &byte);
 	void put_byte(uint8_t byte);
 	
 	bool get_msg(char *msg, size_t nbytes);
 	void put_msg(const char *msg);
 	void trim_msg(char *msg, size_t nbytes);
+	//
+	void put_raw(const char *msg);
 
 	bool get_ulong(unsigned long &num);
 	void put_ulong(unsigned long num);

@@ -38,6 +38,9 @@
 //             though I'm surprised I only saw weird characters and didn't
 //             see the app crash).
 // 2016-11-07: Using PSTR() macro shrunk global memory from 1,341 bytes to 641!
+// 2016-11-07: Seriously, just adding too many string constants (like, as
+//             function parameters), even when global memory is under 50%,
+//             can cause the Arduino to seemingly randomly reboot.
 
 void Helladuino::setup(void) {
 
@@ -48,14 +51,52 @@ void Helladuino::setup(void) {
 
 	// Get the USB connection up first so we can send trace messages.
 	this->comm->setup();
-	// WHATEVER: Changing this string to PROGMEM doesn't change global
-	//           memory usage like I expected, e.g.,
-	//              const char* const hello_msg PROGMEM = "Hello, Beer!";
-	//              this->trace(hello_msg);
-	//           But doing it inline with the PSTR macro works, where:
-	//              #define PSTR(s) ((const PROGMEM char *)(s))
-	//           Hrmmm.
-	this->trace(PSTR("Hello, Beer!"));
+
+	// SAY_WHAT_ARDUINO/2016-11-07: Arduino confuses me. [lb]
+	//
+	// Here's some code and the output when you run it:
+	//
+	//   this->trace_P(PSTR("Hello, Beer! %s"), "YASSSS");
+	//   this->trace_P0(PSTR("Hello, Beer!"));
+	//
+	//   Serial ready
+	//   Hello, Beer! YASSSS
+	//   Hello, Beer!
+	//   
+	//
+	// Here's that same code without the first trace_P:
+	//
+	//   this->trace_P0(PSTR("Hello, Beer! 3"));
+	//
+	//   Serial ready
+	//   IMQHello, Beer!
+	//
+	//   and then "I M Q " precedes every subsequent message!
+	//
+	//   and I cannot tell if "I M Q" is garbled memory (mine) or some
+	//   Arduino oddity (not my memory, and probably not happening).
+
+	// 2016-11-07: Even calling trace_P with an empty string screws it:
+	//  this->trace_P(PSTR("Hello, Beer! %s"), "");
+	//   Serial ready
+	//    IMQHello, Beer! 
+	//    IMQ
+	//    IMQloop: check_stolen_state: call
+	//    IMQloop: check_stolen_state: done
+	//    IMQloop: check_beerme_state: call
+	//    IMQloop: check_beerme_state: done
+	//
+	// So -- FUBAR KLUDGE WORKAROUND:
+	//       This Call -- THIS CALL:
+	//       prevents all that ^^^ [above, with the "I M Q" bull****].
+	//       [SERIOUSLY: There must be a side-effect of calling trace_P.]
+	//
+	// Output debug/trace message to developer: Hello, Beer!
+	// CAVEAT: DO NOT TOUCH THIS F0CK1NG LINE:
+	this->trace_P(PSTR("Hello, %s!"), "Beer");
+delay(5000);
+this->comm->upstream->println("Da Fcuk");
+delay(5000);
 
 	// Get the pins setup next so we can light up the user display.
 	this->pins->setup();
@@ -79,5 +120,20 @@ void Helladuino::trace(const char *msg, ...) {
 	va_start(argp, msg);
 	this->comm->vtrace(msg, argp);
 	va_end(argp);
+}
+
+void Helladuino::trace_P(const char *msg, ...) {
+	va_list argp;
+	va_start(argp, msg);
+	this->comm->vtrace_P(msg, argp);
+	va_end(argp);
+}
+
+void Helladuino::trace_P0(const char *msg) {
+	this->comm->trace_P0(msg);
+}
+
+void Helladuino::put_msg(const char *msg) {
+	this->comm->put_msg(msg);
 }
 

@@ -5,6 +5,8 @@
 
 #include "Arduino.h"
 
+#include <avr/pgmspace.h>
+
 #include "comm.h"
 
 #include "state.h"
@@ -24,15 +26,15 @@ void CommUpstream::setup(void) {
 	// NOTE: I read that when you hook the Arduino app with the IDE terminal,
 	//       it restarts the sketch -- which is sometimes why you see part of
 	//       the "Hello, Beer!" message and then see it repeated.
-	//while (!Serial); // While the serial stream is not open, do nothing.
-
+	while (!Serial); // While the serial stream is not open, do nothing.
+	Serial.println("Serial READY");
 	this->upstream = &Serial;
 }
 
-void CommUpstream::trace(const char *msg, ...) {
+void CommUpstream::trace(const char *fmt, ...) {
 	va_list argp;
-	va_start(argp, msg);
-	this->vtrace(msg, argp);
+	va_start(argp, fmt);
+	this->vtrace(fmt, argp);
 	va_end(argp);
 }
 
@@ -41,33 +43,88 @@ void CommUpstream::vtrace(const char *fmt, va_list argp) {
 	// Use snprintf and not just sprintf to avoid buffer overflow.
 	// Correction: Use vsnprintf and not snprintf because va_list.
 	vsnprintf(payload, comm_len, fmt, argp);
+	this->vtrace_payload(payload);
+}
+
+// PSTR()s have to be specially treated [vsnprintf_P].
+void CommUpstream::trace_P(const char *fmt, ...) {
+//Serial.println("trace_P");
+Serial.println("LET DO THIS trace_P");
+//Serial.println("LET DO THIS trace_P");
+	va_list argp;
+	va_start(argp, fmt);
+	char payload[comm_len];
+	vsnprintf_P(payload, comm_len, fmt, argp);
+	// put_raw includes a newline.
+	this->put_raw(payload);
+	va_end(argp);
+}
+
+void CommUpstream::trace_P0(const char *fmt) {
+	char payload[comm_len];
+	snprintf_P(payload, comm_len, fmt);
+	// put_raw includes a newline.
+	this->put_raw(payload);
+}
+
+void CommUpstream::vtrace_P(const char *fmt, va_list argp) {
+	char payload[comm_len];
+	vsnprintf_P(payload, comm_len, fmt, argp);
+	this->vtrace_payload(payload);
+}
+
+void CommUpstream::vtrace_payload(const char *payload) {
+	// Start of message.
+	if (!DEBUG) {
+		this->put_msg(PSTR("hi"));
+	}
+	// Command.
+	if (!DEBUG) {
+		this->put_msg(PSTR("trace"));
+	}
+	if (DEBUG) {
+//		this->upstream->print("TRACE: ");
+	}
+	// Payload.
+	this->put_raw(payload);
+	// Outro.
+	if (!DEBUG) {
+		this->put_msg(PSTR("bye"));
+	}
+}
+
+/*
+void CommUpstream::vtrace_P(const char *fmt, va_list argp) {
+	char payload[comm_len];
+	vsnprintf_P(payload, comm_len, msg, argp);
 	// Start of message.
 	this->put_msg(PSTR("hi"));
 	// Command.
 	this->put_msg(PSTR("trace"));
 	// Payload.
-	this->put_msg(payload);
+	this->put_raw(payload);
 	// Outro.
 	this->put_msg(PSTR("bye"));
 }
+*/
 
 bool CommUpstream::contract(const bool assertion, const char *file, const unsigned long line) {
 	if (!assertion) {
-		this->trace(PSTR("CONTRACT: Failed in file: %s / line: %d"), file, line);
+		this->trace_P(PSTR("CONTRACT: Failed in file: %s / line: %d"), file, line);
 	}
 }
 
 bool CommUpstream::authenticate(const char* token) {
 	bool authenticated = false;
 
-	this->trace(PSTR("authenticate: sending token: %s"), token);
+	this->trace_P(PSTR("authenticate: sending token: %s"), token);
 
 	// Start of message.
 	this->put_msg(PSTR("hi"));
 	// Command.
 	this->put_msg(PSTR("auth"));
 	// Payload.
-	this->put_msg(token);
+	this->put_raw(token);
 	// Outro.
 	this->put_msg(PSTR("bye"));
 
@@ -75,23 +132,23 @@ bool CommUpstream::authenticate(const char* token) {
 	// Also, some examples suggest delay(10) msecs,
 	//  but we can just block on read, right?
 
-	this->trace(PSTR("authenticate: awaiting response..."));
+	this->trace_P0(PSTR("authenticate: awaiting response..."));
 
 	char response[comm_len];
 	bool received = this->get_msg(response, comm_len);
 	if (response[0] == '\0') {
 		// FIXME: Timeout?
-		this->trace(PSTR("authenticate: WARNING: timeout/No response"));
+		this->trace_P0(PSTR("authenticate: WARNING: timeout/No response"));
 	}
 	else if (strcmp(response, PSTR("ok"))) {
-		this->trace(PSTR("authenticate: okay"));
+		this->trace_P0(PSTR("authenticate: okay"));
 		authenticated = true;
 	}
 	else if (strcmp(response, PSTR("no"))) {
-		this->trace(PSTR("authenticate: nope"));
+		this->trace_P0(PSTR("authenticate: nope"));
 	}
 	else {
-		this->trace(PSTR("authenticate: WARNING: unexpected response: %s"), response);
+		this->trace_P(PSTR("authenticate: WARNING: unexpected response: %s"), response);
 	}
 
 	return authenticated;
@@ -109,7 +166,7 @@ void CommUpstream::update_flow(
 	// Command(s) and payload.
 	// - State name.
 	this->put_msg(PSTR("state"));
-	this->put_msg(state_name);
+	this->put_raw(state_name);
 	// - Blips elapsed in this state.
 	this->put_msg(PSTR("blips"));
 	this->put_ulong(elapsed_blip);
@@ -120,11 +177,12 @@ void CommUpstream::update_flow(
 	this->put_msg(PSTR("bye"));
 }
 
-void CommUpstream::put_msg(const char *msg) {
+void CommUpstream::put_raw(const char *msg) {
 	if (DEBUG) {
-		this->upstream->print(PSTR("MOCK/put_msg: "));
+		this->upstream->print(PSTR("MOCK/put_raw: "));
 	}
 	this->upstream->println(msg);
+
 	// 2016-11-07: While investigating the serial comm garbage issue
 	// (solved by using PSTR()), I tried adding flush(), but I don't
 	// think it, like, waits and makes sure the outgoing bytes are
@@ -133,12 +191,23 @@ void CommUpstream::put_msg(const char *msg) {
 	//  this->upstream->flush();
 }
 
+void CommUpstream::put_msg(const char *msg) {
+	// Just keeps getting weirder: We have to do a little dance
+	// so that passing PSTR() char*s to this function works,
+	// otherwise we print garbage (or nothing).
+	while (pgm_read_byte(msg) != '\0') {
+		//this->upstream->print(pgm_read_byte(msg++));
+		this->upstream->write(pgm_read_byte(msg++));
+	}
+	this->upstream->print('\n');
+}
+
 bool CommUpstream::get_msg(char *msg, size_t nbytes) {
 	if (!DEBUG) {
 		size_t bytes_read = this->upstream->readBytesUntil('\n', msg, nbytes);
 		// NOTE: Don't care about bytes_read, except maybe if == nbytes.
 		if (bytes_read == nbytes) {
-			this->trace(PSTR("get_msg: WARNING: read max nbytes: %d"),  nbytes);
+			this->trace_P(PSTR("get_msg: WARNING: read max nbytes: %d"),  nbytes);
 		}
 		this->trim_msg(msg, nbytes);
 	}
@@ -246,7 +315,7 @@ bool CommUpstream::get_ulong(unsigned long &num) {
 				}
 			}
 			else {
-				this->trace(PSTR("get_ulong: timeout: num: %s"), num);
+				this->trace_P(PSTR("get_ulong: timeout: num: %s"), num);
 			}
 		}
 	}

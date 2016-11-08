@@ -46,6 +46,9 @@ Bluedot_Key_Status BlueDot::get_key_code(uint8_t ibutton_addr[IBUTTON_LEN]) {
 	return key_status;
 }
 
+// FIXME: Move to the Pi.
+//        BECAUSE: pi should do stringification
+/*
 const char* BlueDot::get_key_status_name(Bluedot_Key_Status key_status) {
 	switch (key_status) {
 		case BLUEDOT_KEY_STATUS_UNKNOWN:
@@ -63,4 +66,5 @@ const char* BlueDot::get_key_status_name(Bluedot_Key_Status key_status) {
 			return PSTR("ERROR: No such status: int > count");
 	}
 }
+*/
 

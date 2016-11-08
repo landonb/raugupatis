@@ -25,7 +25,6 @@ public:
 	void setup(void);
 	void reset(void);
 	Bluedot_Key_Status get_key_code(uint8_t ibutton_addr[IBUTTON_LEN]);
-	const char* get_key_status_name(Bluedot_Key_Status key_status);
 };
 
 #endif // __BLUEDOT_H__

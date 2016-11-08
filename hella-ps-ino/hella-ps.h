@@ -15,8 +15,13 @@ class StateMachine;
 
 // DEVs: If DEBUG true, assumes USB connected to dev machine (and not the Pi),
 //       so dumps commands and traces to the line but doesn't expect responses.
-const bool DEBUG = false;
-//const bool DEBUG = true;
+
+
+
+//const bool DEBUG = false;
+const bool DEBUG = true;
+
+
 
 class Helladuino {
 public:
@@ -31,6 +36,9 @@ public:
 	void loop(void);
 
 	void trace(const char *msg, ...);
+	void trace_P(const char *msg, ...);
+	void trace_P0(const char *msg);
+	void put_msg(const char *msg);
 };
 
 #endif // __HELLA_PS_H__
