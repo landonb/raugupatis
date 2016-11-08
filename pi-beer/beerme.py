@@ -269,6 +269,15 @@ class Pibeer(object):
             next_ch_ = self.serial.read(1)
             if len(next_ch_):
                 if next_ch_ == '\n':
+#
+                    import pdb;pdb.set_trace()
+
+                    # All done.
+                    break
+                if next_ch_ == '\r':
+#
+                    import pdb;pdb.set_trace()
+
                     # All done.
                     break
                 #line += chr(next_ch_[0])
@@ -277,6 +286,11 @@ class Pibeer(object):
                 # Timeout.
                 if line:
                     trace("WARNING: read_line_serial: timeout on line: %s" % (line,))
+
+#
+                    import pdb;pdb.set_trace()
+                    pass
+
                 line = None
                 break
         trace("read_line_serial: line: %s" % (line,))
