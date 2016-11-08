@@ -351,13 +351,18 @@ class Pibeer(object):
             raise BeermeSerialException("WARNING: Token read failed: %s" % (token,))
         assert(len(token) == IBUTTON_LEN)
 
-        next_ch_ = self.serial.read(1)
-        if len(next_ch_):
-            assert(len(next_ch_) == 1)
+        next_chs_ = self.serial.read(2)
+        if len(next_chs_):
+            assert(len(next_chs_) == 2)
             # next_ch_ is a bytes, which we can access like a list.
-            if next_ch_[0] != '\n':
+            if next_ch_[0] != '\r':
                 raise BeermeSerialException(
-                    "WARNING: Expected newline after token: %s / next_ch: %s"
+                    "WARNING: Expected carriage return after token: %s / next_ch: %s"
+                    % (token, next_ch_,)
+                )
+            if next_ch_[1] != '\n':
+                raise BeermeSerialException(
+                    "WARNING: Expected newline after carriage return after token: %s / next_ch: %s"
                     % (token, next_ch_,)
                 )
         else:
