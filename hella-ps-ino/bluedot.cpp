@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.07
+// Last Modified: 2016.11.08
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -46,9 +46,6 @@ Bluedot_Key_Status BlueDot::get_key_code(uint8_t ibutton_addr[IBUTTON_LEN]) {
 	return key_status;
 }
 
-// FIXME: Move to the Pi.
-//        BECAUSE: pi should do stringification
-/*
 const char* BlueDot::get_key_status_name(Bluedot_Key_Status key_status) {
 	switch (key_status) {
 		case BLUEDOT_KEY_STATUS_UNKNOWN:
@@ -66,5 +63,4 @@ const char* BlueDot::get_key_status_name(Bluedot_Key_Status key_status) {
 			return PSTR("ERROR: No such status: int > count");
 	}
 }
-*/
 

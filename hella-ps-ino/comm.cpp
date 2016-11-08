@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.07
+// Last Modified: 2016.11.08
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -27,7 +27,9 @@ void CommUpstream::setup(void) {
 	//       it restarts the sketch -- which is sometimes why you see part of
 	//       the "Hello, Beer!" message and then see it repeated.
 	while (!Serial); // While the serial stream is not open, do nothing.
-	Serial.println("Serial READY");
+	if (DEBUG) {
+		Serial.println("Serial READY");
+	}
 	this->upstream = &Serial;
 }
 
@@ -50,10 +52,11 @@ void CommUpstream::vtrace(const char *fmt, va_list argp) {
 void CommUpstream::trace_P(const char *fmt, ...) {
 	va_list argp;
 	va_start(argp, fmt);
-	char payload[comm_len];
-	vsnprintf_P(payload, comm_len, fmt, argp);
-	// put_raw includes a newline.
-	this->put_raw(payload);
+	//char payload[comm_len];
+	//vsnprintf_P(payload, comm_len, fmt, argp);
+	//// put_raw includes a newline.
+	//this->put_raw(payload);
+	this->vtrace_P(fmt, argp);
 	va_end(argp);
 }
 
@@ -61,7 +64,8 @@ void CommUpstream::trace_P0(const char *fmt) {
 	char payload[comm_len];
 	snprintf_P(payload, comm_len, fmt);
 	// put_raw includes a newline.
-	this->put_raw(payload);
+	//this->put_raw(payload);
+	this->vtrace_payload(payload);
 }
 
 void CommUpstream::vtrace_P(const char *fmt, va_list argp) {
@@ -72,20 +76,17 @@ void CommUpstream::vtrace_P(const char *fmt, va_list argp) {
 
 void CommUpstream::vtrace_payload(const char *payload) {
 	// Start of message.
-	if (!DEBUG) {
+	if (REMOTE_TRACE) {
 		this->put_msg(PSTR("hi"));
 	}
 	// Command.
-	if (!DEBUG) {
+	if (REMOTE_TRACE) {
 		this->put_msg(PSTR("trace"));
-	}
-	if (DEBUG) {
-//		this->upstream->print("TRACE: ");
 	}
 	// Payload.
 	this->put_raw(payload);
 	// Outro.
-	if (!DEBUG) {
+	if (REMOTE_TRACE) {
 		this->put_msg(PSTR("bye"));
 	}
 }
@@ -114,7 +115,7 @@ bool CommUpstream::contract(const bool assertion, const char *file, const unsign
 bool CommUpstream::authenticate(const char* token) {
 	bool authenticated = false;
 
-	this->trace_P(PSTR("authenticate: sending token: %s"), token);
+	//this->trace_P(PSTR("authenticate: sending token: %s"), token);
 
 	// Start of message.
 	this->put_msg(PSTR("hi"));
@@ -129,7 +130,7 @@ bool CommUpstream::authenticate(const char* token) {
 	// Also, some examples suggest delay(10) msecs,
 	//  but we can just block on read, right?
 
-	this->trace_P0(PSTR("authenticate: awaiting response..."));
+	//this->trace_P0(PSTR("authenticate: awaiting response..."));
 
 	char response[comm_len];
 	bool received = this->get_msg(response, comm_len);
@@ -156,7 +157,7 @@ void CommUpstream::update_flow(
 	unsigned long elapsed_blip,
 	unsigned long elapsed_time
 ) {
-	this->trace(PSTR("authenticate: updating flow: %s"), state_name);
+	//this->trace(PSTR("authenticate: updating flow: %s"), state_name);
 
 	// Start of message.
 	this->put_msg(PSTR("hi"));
@@ -175,9 +176,6 @@ void CommUpstream::update_flow(
 }
 
 void CommUpstream::put_raw(const char *msg) {
-	if (DEBUG) {
-		this->upstream->print(PSTR("MOCK/put_raw: "));
-	}
 	this->upstream->println(msg);
 
 	// 2016-11-07: While investigating the serial comm garbage issue
@@ -186,6 +184,7 @@ void CommUpstream::put_raw(const char *msg) {
 	// sent, but instead I think it just resets the channel and dumps
 	// whatever is still queued to be sent. So don't do this:
 	//  this->upstream->flush();
+	//delay(100);
 }
 
 void CommUpstream::put_msg(const char *msg) {
@@ -196,7 +195,9 @@ void CommUpstream::put_msg(const char *msg) {
 		//this->upstream->print(pgm_read_byte(msg++));
 		this->upstream->write(pgm_read_byte(msg++));
 	}
-	this->upstream->print('\n');
+	//this->upstream->print('\n');
+	this->upstream->println("");
+	//delay(100);
 }
 
 bool CommUpstream::get_msg(char *msg, size_t nbytes) {
@@ -210,7 +211,7 @@ bool CommUpstream::get_msg(char *msg, size_t nbytes) {
 	}
 	else {
 		// FIXME/Whatever: This is useless.
-		snprintf(msg, nbytes, PSTR("MOCK/get_msg"));
+		snprintf_P(msg, nbytes, PSTR("MOCK/get_msg"));
 	}
 	return msg;
 }
@@ -312,7 +313,7 @@ bool CommUpstream::get_ulong(unsigned long &num) {
 				}
 			}
 			else {
-				this->trace_P(PSTR("get_ulong: timeout: num: %s"), num);
+				this->trace_P(PSTR("get_ulong: timeout: num: %d"), num);
 			}
 		}
 	}

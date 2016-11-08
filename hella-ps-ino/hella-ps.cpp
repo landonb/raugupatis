@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.07
+// Last Modified: 2016.11.08
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -52,9 +52,14 @@ void Helladuino::setup(void) {
 	// Get the USB connection up first so we can send trace messages.
 	this->comm->setup();
 
-	// SAY_WHAT_ARDUINO/2016-11-07: Arduino confuses me. [lb]
+	// 2016-11-08: BEWARE: If you pass PSTRs around and don't treat them
+	// specially, you could get weird program behavior that at least can
+	// manifest itself as gargled or garbage in the serial output stream.
 	//
-	// Here's some code and the output when you run it:
+	// I.e., introduce small changes in case you screw up memory, because
+	// it's not always obvious what's happening or what caused it.
+	//
+	// For instance, on 2016-11-07, I had some code that worked as expected:
 	//
 	//   this->trace_P(PSTR("Hello, Beer! %s"), "YASSSS");
 	//   this->trace_P0(PSTR("Hello, Beer!"));
@@ -64,39 +69,19 @@ void Helladuino::setup(void) {
 	//   Hello, Beer!
 	//   
 	//
-	// Here's that same code without the first trace_P:
+	// But then I removed the first trace_P and all hell broke loose:
 	//
 	//   this->trace_P0(PSTR("Hello, Beer! 3"));
 	//
 	//   Serial ready
 	//   IMQHello, Beer!
 	//
-	//   and then "I M Q " precedes every subsequent message!
+	//   and the same dumb "I M Q " preceded every subsequent message!
 	//
-	//   and I cannot tell if "I M Q" is garbled memory (mine) or some
-	//   Arduino oddity (not my memory, and probably not happening).
-
-	// 2016-11-07: Even calling trace_P with an empty string screws it:
-	//  this->trace_P(PSTR("Hello, Beer! %s"), "");
-	//   Serial ready
-	//    IMQHello, Beer! 
-	//    IMQ
-	//    IMQloop: check_stolen_state: call
-	//    IMQloop: check_stolen_state: done
-	//    IMQloop: check_beerme_state: call
-	//    IMQloop: check_beerme_state: done
-	//
-	// So -- FUBAR KLUDGE WORKAROUND:
-	//       This Call -- THIS CALL:
-	//       prevents all that ^^^ [above, with the "I M Q" bull****].
-	//       [SERIOUSLY: There must be a side-effect of calling trace_P.]
-	//
-	// Output debug/trace message to developer: Hello, Beer!
-	// CAVEAT: DO NOT TOUCH THIS F0CK1NG LINE:
+	// Though it's not always a weird prefix. Sometimes you'll see
+	// crud mixed in with messages, or messages being repeated, or
+	// partially repeated, etc.
 	this->trace_P(PSTR("Hello, %s!"), "Beer");
-delay(5000);
-this->comm->upstream->println("Da Fcuk");
-delay(5000);
 
 	// Get the pins setup next so we can light up the user display.
 	this->pins->setup();
@@ -115,22 +100,22 @@ void Helladuino::loop(void) {
 	this->state->loop();
 }
 
-void Helladuino::trace(const char *msg, ...) {
+void Helladuino::trace(const char *fmt, ...) {
 	va_list argp;
-	va_start(argp, msg);
-	this->comm->vtrace(msg, argp);
+	va_start(argp, fmt);
+	this->comm->vtrace(fmt, argp);
 	va_end(argp);
 }
 
-void Helladuino::trace_P(const char *msg, ...) {
+void Helladuino::trace_P(const char *fmt, ...) {
 	va_list argp;
-	va_start(argp, msg);
-	this->comm->vtrace_P(msg, argp);
+	va_start(argp, fmt);
+	this->comm->vtrace_P(fmt, argp);
 	va_end(argp);
 }
 
-void Helladuino::trace_P0(const char *msg) {
-	this->comm->trace_P0(msg);
+void Helladuino::trace_P0(const char *fmt) {
+	this->comm->trace_P0(fmt);
 }
 
 void Helladuino::put_msg(const char *msg) {

@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.07
+// Last Modified: 2016.11.08
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -24,6 +24,8 @@ const struct PROGMEM {
 
 	// How often to send flow reports to the Pi.
 	const int flow_updates = 200;
+
+	const int report_interval = 987;
 
 } timeouts;
 
@@ -85,6 +87,12 @@ public:
 	BlueDot *bluedot = NULL;
 
 	HellaState state = STATE_BORED;
+
+	unsigned long curr_loop_n = 0;
+	unsigned long prev_loop_n = 0;
+	unsigned long prev_millis = 0;
+	bool update_state = false;
+	bool update_key_status = false;
 
 	unsigned long state_time_0 = 0;
 

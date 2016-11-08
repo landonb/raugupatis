@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.07
+// Last Modified: 2016.11.08
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -34,9 +34,28 @@ void StateMachine::loop(void) {
 
 	this->check_timers_state();
 
-// FIXME: NOT WORKING
-this->comm->trace_P0(PSTR("StateMachine::loop: delay 2345..."));
-delay(2500);
+	//if (DEBUG) {
+	//	this->comm->trace_P0(PSTR("StateMachine::loop: delay 987..."));
+	//	delay(987);
+	//}
+	curr_loop_n += 1;
+	unsigned long curr_millis = millis();
+	if ((curr_millis - prev_millis) > timeouts.report_interval) {
+		prev_loop_n = curr_loop_n;
+		prev_millis = curr_millis;
+		// ARGH/WHATEVER: The second param in this trace prints out as "0".
+		// Whatever. I've struggled enough with trace and PSTR and being a
+		// good memory caretaker. I won't worry about this.
+		//this->comm->trace_P(
+		//	PSTR("StateMachine::loop: count: %d / millis: %d"),
+		//	curr_loop_n,
+		//	curr_millis
+		//);
+		this->comm->trace_P(PSTR("StateMachine::loop: count: %d"), curr_loop_n);
+		this->comm->trace_P(PSTR("StateMachine::loop: milli: %d"), curr_millis);
+		this->update_state = true;
+		this->update_key_status = true;
+	}
 }
 
 void StateMachine::check_stolen_state(void) {
@@ -126,8 +145,7 @@ void StateMachine::check_beerme_state(void) {
 			// Skipping: STATE_STOLEN
 			// Skipping: STATE_SKULKING
 		) {
-			char* t_or_f = latest_beerme ? PSTR("true") : PSTR("false");
-// PSTR: HEREHERE
+			char t_or_f = latest_beerme ? 'T' : 'F';
 			this->comm->trace_P(PSTR("check_beerme_state: latest_beerme: %s"), t_or_f);
 
 			if (latest_beerme) {
@@ -180,29 +198,20 @@ void StateMachine::check_atoken_state(void) {
 		uint8_t ibutton_addr[8];
 		Bluedot_Key_Status key_status = this->bluedot->get_key_code(ibutton_addr);
 
-		// FIXME: Probably comment this out unless swiped, else, too many traces.
-// PSTR: HEREHERE
-//		this->comm->trace_P(
-//			PSTR("check_atoken_state: this->bluedot->get_key_code: key_status: %s"),
-//			this->bluedot->get_key_status_name(key_status)
-//		);
-		this->comm->trace_P(
-			PSTR("check_atoken_state: this->bluedot->get_key_code: key_status: %d"),
-			key_status
-		);
-// FIXME: See if this works now with the PSTR fixes:
-//		this->comm->trace_P(
-//			PSTR("check_atoken_state: this->bluedot->get_key_code: key_status: %s / ibutton_addr: %.*s"),
-//			this->bluedot->get_key_status_name(key_status),
-//			8, ibutton_addr
-//		);
+		int buf_len = 16;
+		char status_label[buf_len];
+		snprintf_P(status_label, buf_len, this->bluedot->get_key_status_name(key_status));
 
 		if (key_status == BLUEDOT_KEY_STATUS_VALID) {
-			this->comm->trace_P0(PSTR("check_atoken_state: this->bluedot->get_key_code: ibutton_addr:"));
+			this->comm->trace_P0(PSTR("check_atoken_state: ibutton_addr:"));
 			for (int i = 0; i < 8; i++) {
-// PSTR: HEREHERE
 				this->comm->trace_P(PSTR(" index: %s / 0x%x"), i, ibutton_addr[i]);
 			}
+			// FIXME: See if this works now with the PSTR fixes:
+			this->comm->trace_P(
+				PSTR("check_atoken_state: key_status: %s / ibutton_addr: %.*s"),
+				status_label, 8, ibutton_addr
+			);
 
 			bool authenticated = this->comm->authenticate(ibutton_addr);
 			if (authenticated) {
@@ -210,6 +219,15 @@ void StateMachine::check_atoken_state(void) {
 			}
 			else {
 				this->transition(STATE_BUZZ_OFF);
+			}
+		}
+		else {
+			if (DEBUG || this->update_key_status) {
+				this->comm->trace_P(
+					PSTR("check_atoken_state: key_status: %s"),
+					status_label
+				);
+				this->update_key_status = false;
 			}
 		}
 	}
@@ -238,6 +256,9 @@ void StateMachine::check_timers_state(void) {
 
 	unsigned long state_uptime = millis() - this->state_time_0;
 	switch (this->state) {
+		case STATE_BORED:
+			// No-op.
+			break;
 		case STATE_BUZZ_OFF:
 			// An animation state. Resume being bored when finished animating.
 			if (state_uptime >= timeouts.degaging) {
@@ -260,9 +281,13 @@ void StateMachine::check_timers_state(void) {
 			}
 			// else, less time than the timeout, stay engaged.
 			break;
-		// Skipping: STATE_PATIENCE
+		case STATE_PATIENCE:
+			// No-op.
+			break;
 		// See below: STATE_POURING
-		// Skipping: STATE_GULPING
+		case STATE_GULPING:
+			// No-op.
+			break;
 		case STATE_DEGAGING:
 			// An animation state. Go bored when finished animating. However,
 			// unlike other animation states, user can recover from this one.
@@ -271,7 +296,9 @@ void StateMachine::check_timers_state(void) {
 			}
 			// else, this->pins->animate will handle the lights for this state.
 			break;
-		// Skipping: STATE_EIGHTYSIX
+		case STATE_EIGHTYSIX:
+			// No-op.
+			break;
 		case STATE_STEALING:
 			// Unreachable/already handled.
 			contract(false, __FILE__, __LINE__);
@@ -282,7 +309,7 @@ void StateMachine::check_timers_state(void) {
 			}
 			// else, this->pins->animate will handle the lights for this state.
 			break;
-		// See below: STATE_TOLEN
+		// See below: STATE_STOLEN
 		case STATE_SKULKING:
 			// An animation state. Become bored once done skulking.
 			if (state_uptime >= timeouts.skulking) {
@@ -294,19 +321,38 @@ void StateMachine::check_timers_state(void) {
 		case STATE_STOLEN:
 			this->check_timers_pouring_or_stolen(state_uptime);
 			break;
+		case STATE_NONE:
 		default:
 			// Unreachable.
-			contract(false, __FILE__, __LINE__);
-
-// 2016-11-07: This is firing			
 			this->comm->trace_P(PSTR("check_beerme_state: state: %d"), this->state);
-
+			contract(false, __FILE__, __LINE__);
 			break;
 	}
 
 	this->pins->animate(this->state, this->state_time_0);
 
-	//this->comm->trace_P(PSTR("StateMachine::loop: Final state: %s"), this->get_state_name());
+	if (DEBUG || this->update_state) {
+		// I guess maybe only the first, format argument can be PSTR.
+		//
+		//   this->comm->trace_P(PSTR("StateMachine::loop: Final state: %s"), this->get_state_name());
+		//
+		// prints:
+		//
+		//   StateMachine::loop: Final state: fR
+		//
+		// Calling trace twice works:
+		//
+		//   this->comm->trace_P0(PSTR("StateMachine::loop: Final state:"));
+		//   this->comm->trace_P0(this->get_state_name());
+		//
+		// Or we can use an intermediate string buffer (that's on the function
+		// stack and not in PROGMEM:
+		int buf_len = 16;
+		char state_name[buf_len];
+		snprintf_P(state_name, buf_len, this->get_state_name());
+		this->comm->trace_P(PSTR("StateMachine::loop: Final state: %s"), state_name);
+		this->update_state = false;
+	}
 }
 
 void StateMachine::check_timers_pouring_or_stolen(unsigned long state_uptime) {
@@ -371,24 +417,12 @@ void StateMachine::transition(HellaState new_state) {
 	//rfid_reset();
 	this->bluedot->reset();
 
-
-//	const char * state_name = this->get_state_name();
-//	while (pgm_read_byte(state_name) != '\0') {
-//		//this->upstream->print(pgm_read_byte(msg++));
-//		this->upstream->write(pgm_read_byte(state_name++));
-//	}
-	
-
-// PSTR: HEREHERE
+	int buf_len = 16;
+	char state_name[buf_len];
+	snprintf_P(state_name, buf_len, this->get_state_name());
 	this->comm->trace_P(
-
-//		PSTR("StateMachine::transition: New state: %s / time_0: %d"),
-// FIXME: PSTR problem
-//		this->get_state_name(),
-
-		PSTR("StateMachine::transition: New state: %d / time_0: %d"),
-		this->state,
-
+		PSTR("StateMachine::transition: New state: %s / time_0: %d"),
+		state_name,
 		this->state_time_0
 	);
 }

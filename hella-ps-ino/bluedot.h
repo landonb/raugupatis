@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.07
+// Last Modified: 2016.11.08
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -24,7 +24,9 @@ public:
 
 	void setup(void);
 	void reset(void);
+
 	Bluedot_Key_Status get_key_code(uint8_t ibutton_addr[IBUTTON_LEN]);
+	const char* get_key_status_name(Bluedot_Key_Status key_status);
 };
 
 #endif // __BLUEDOT_H__

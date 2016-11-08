@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.07
+// Last Modified: 2016.11.08
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -16,12 +16,11 @@ class StateMachine;
 // DEVs: If DEBUG true, assumes USB connected to dev machine (and not the Pi),
 //       so dumps commands and traces to the line but doesn't expect responses.
 
+const bool DEBUG = false;
+//const bool DEBUG = true;
 
-
-//const bool DEBUG = false;
-const bool DEBUG = true;
-
-
+//const bool REMOTE_TRACE = false;
+const bool REMOTE_TRACE = true;
 
 class Helladuino {
 public:
@@ -35,9 +34,9 @@ public:
 	void setup(void);
 	void loop(void);
 
-	void trace(const char *msg, ...);
-	void trace_P(const char *msg, ...);
-	void trace_P0(const char *msg);
+	void trace(const char *fmt, ...);
+	void trace_P(const char *fmt, ...);
+	void trace_P0(const char *fmt);
 	void put_msg(const char *msg);
 };
 
