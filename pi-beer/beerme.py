@@ -271,7 +271,13 @@ class Pibeer(object):
                 if next_ch_ == '\n':
                     # All done.
                     break
-                line += chr(next_ch_[0])
+                try:
+                    line += chr(next_ch_[0])
+                except Exception as err:
+#
+                    import pdb;pdb.set_trace()
+                    
+                    pass
             else:
                 # Timeout.
                 if line:
