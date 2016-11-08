@@ -271,18 +271,14 @@ class Pibeer(object):
                 if next_ch_ == '\n':
                     # All done.
                     break
-                try:
-                    line += chr(next_ch_[0])
-                except Exception as err:
-#
-                    import pdb;pdb.set_trace()
-                    
-                    pass
+                #line += chr(next_ch_[0])
+                line += next_ch_.decode('utf-8')
             else:
                 # Timeout.
                 if line:
                     trace("WARNING: read_line_serial: timeout on line: %s" % (line,))
                 line = None
+                break
         trace("read_line_serial: line: %s" % (line,))
         return line
 
