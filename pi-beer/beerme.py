@@ -118,7 +118,6 @@ class PibeerParser(argparse.ArgumentParser):
     def __init__(self):
         argparse.ArgumentParser.__init__(self)
         self.cli_opts = None
-        self.found_work_last_time = True
 
     def get_opts(self):
         self.prepare()
@@ -162,6 +161,7 @@ class Pibeer(object):
     def __init__(self):
         self.cli_opts = None
         self.serial = None
+        self.found_work_last_time = True
 
     def go(self, cli_opts_):
         self.cli_opts = cli_opts_
