@@ -271,7 +271,7 @@ class Pibeer(object):
                 if next_ch_ == '\n':
                     # All done.
                     break
-                line += next_ch_[0]
+                line += chr(next_ch_[0])
             else:
                 # Timeout.
                 if line:
