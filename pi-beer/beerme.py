@@ -86,7 +86,7 @@ BEER_LOG_MAX_BYTES = 10000000
 
 
 # FIXME: Test smaller for now!
-BEER_LOG_MAX_BYTES = 1000
+#BEER_LOG_MAX_BYTES = 1000
 
 
 TRACEF = open(BEER_LOG, 'w')
