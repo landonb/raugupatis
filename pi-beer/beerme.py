@@ -208,7 +208,7 @@ class Pibeer(object):
 
         if not self.cli_opts.serial_dev:
             trace("Looking for comports...")
-            comports = list_ports_posix.comports
+            comports = list_ports_posix.comports()
 
             # Returns a dict-list, e.g.,
             #  [('/dev/ttyACM1', 'ttyACM1', 'USB VID:PID=2341:0001 SNR=64935343633351905211')]
