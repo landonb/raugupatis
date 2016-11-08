@@ -34,7 +34,8 @@ void StateMachine::loop(void) {
 
 	this->check_timers_state();
 
-this->comm->trace_P0(PSTR("StateMachine::loop: delay 2500..."));
+// FIXME: NOT WORKING
+this->comm->trace_P0(PSTR("StateMachine::loop: delay 2345..."));
 delay(2500);
 }
 
@@ -296,6 +297,14 @@ void StateMachine::check_timers_state(void) {
 		default:
 			// Unreachable.
 			contract(false, __FILE__, __LINE__);
+
+// 2016-11-07: This is firing			
+			this->comm->trace_P(PSTR("check_beerme_state: latest_beerme: %s"), t_or_f);
+			this->comm->trace_P(PSTR("check_beerme_state: state: %d"), this->state);
+			
+
+
+
 			break;
 	}
 
