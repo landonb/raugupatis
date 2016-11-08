@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.07
+// Last Modified: 2016.11.08
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -22,16 +22,19 @@ public:
 	void trace(const char *msg, ...);
 	void vtrace(const char *fmt, va_list argp);
 	void trace_P(const char *fmt, ...);
+	void write_P(const char *fmt, ...);
 	void trace_P0(const char *fmt);
+	void write_P0(const char *fmt);
 	void vtrace_P(const char *fmt, va_list argp);
 	//
 	void vtrace_payload(const char *payload);
 
 	bool contract(const bool assertion, const char *file, const unsigned long line);
+	bool contract(const bool assertion, const unsigned long file, const unsigned long line);
 
 	// Pibeer API.
 
-	bool authenticate(const char *token);
+	bool authenticate(uint8_t ibutton_addr[8]);
 
 	void update_flow(
 		const char *state_name,

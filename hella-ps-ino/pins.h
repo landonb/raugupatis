@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.07
+// Last Modified: 2016.11.08
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -104,7 +104,10 @@ struct {
 class InputsOutputs {
 public:
 
-	void setup();
+	CommUpstream *comm = NULL;
+
+	//void setup();
+	void setup(Helladuino *hellaps);
 
 	// ISRs.
 	static void on_action_button_isr(void);
@@ -125,7 +128,16 @@ public:
 	unsigned long get_flowmeter_count(void);
 	uint8_t check_steal_button(void);
 	void transition(HellaState new_state);
+
+	unsigned long last_animate_time = 0;
+	void (*animator)(unsigned long, unsigned long, unsigned long);
 	void animate(HellaState new_state, unsigned long state_time_0);
+	static void animate_annoyed(
+		unsigned long curr_time,
+		unsigned long state_time_0,
+		unsigned long last_animate_time
+	);
+
 };
 
 #endif // __PINS_H__

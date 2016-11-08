@@ -13,7 +13,8 @@
 
 // Ug. I read somewhere about not using String, so now I'm
 // finding myself passing char stars and buffer lengths around.
-const unsigned int comm_len PROGMEM = 1024;
+//const unsigned int comm_len PROGMEM = 1024;
+const unsigned int comm_len PROGMEM = 256;
 
 void CommUpstream::setup(void) {
 	//Serial.begin(9600);
@@ -52,20 +53,31 @@ void CommUpstream::vtrace(const char *fmt, va_list argp) {
 void CommUpstream::trace_P(const char *fmt, ...) {
 	va_list argp;
 	va_start(argp, fmt);
-	//char payload[comm_len];
-	//vsnprintf_P(payload, comm_len, fmt, argp);
-	//// put_raw includes a newline.
-	//this->put_raw(payload);
 	this->vtrace_P(fmt, argp);
+	va_end(argp);
+}
+
+void CommUpstream::write_P(const char *fmt, ...) {
+	va_list argp;
+	va_start(argp, fmt);
+	char payload[comm_len];
+	vsnprintf_P(payload, comm_len, fmt, argp);
+	// put_raw includes a newline.
+	this->put_raw(payload);
 	va_end(argp);
 }
 
 void CommUpstream::trace_P0(const char *fmt) {
 	char payload[comm_len];
 	snprintf_P(payload, comm_len, fmt);
-	// put_raw includes a newline.
-	//this->put_raw(payload);
 	this->vtrace_payload(payload);
+}
+
+void CommUpstream::write_P0(const char *fmt) {
+	char payload[comm_len];
+	snprintf_P(payload, comm_len, fmt);
+	// put_raw includes a newline.
+	this->put_raw(payload);
 }
 
 void CommUpstream::vtrace_P(const char *fmt, va_list argp) {
@@ -108,11 +120,17 @@ void CommUpstream::vtrace_P(const char *fmt, va_list argp) {
 
 bool CommUpstream::contract(const bool assertion, const char *file, const unsigned long line) {
 	if (!assertion) {
-		this->trace_P(PSTR("CONTRACT: Failed in file: %s / line: %d"), file, line);
+		this->trace_P(PSTR("CONTRACT: Failed in file: %s / line: %lu"), file, line);
 	}
 }
 
-bool CommUpstream::authenticate(const char* token) {
+bool CommUpstream::contract(const bool assertion, const unsigned long file, const unsigned long line) {
+	if (!assertion) {
+		this->trace_P(PSTR("CONTRACT: Failed in file: %lu / line: %lu"), file, line);
+	}
+}
+
+bool CommUpstream::authenticate(uint8_t ibutton_addr[8]) {
 	bool authenticated = false;
 
 	//this->trace_P(PSTR("authenticate: sending token: %s"), token);
@@ -122,7 +140,11 @@ bool CommUpstream::authenticate(const char* token) {
 	// Command.
 	this->put_msg(PSTR("auth"));
 	// Payload.
-	this->put_raw(token);
+	//this->put_raw(token);
+	for (int i = 0; i < 8; i++) {
+		this->upstream->write(ibutton_addr[i]);
+	}
+	this->upstream->println("");
 	// Outro.
 	this->put_msg(PSTR("bye"));
 
@@ -133,20 +155,34 @@ bool CommUpstream::authenticate(const char* token) {
 	//this->trace_P0(PSTR("authenticate: awaiting response..."));
 
 	char response[comm_len];
-	bool received = this->get_msg(response, comm_len);
-	if (response[0] == '\0') {
-		// FIXME: Timeout?
-		this->trace_P0(PSTR("authenticate: WARNING: timeout/No response"));
-	}
-	else if (strcmp(response, PSTR("ok"))) {
-		this->trace_P0(PSTR("authenticate: okay"));
-		authenticated = true;
-	}
-	else if (strcmp(response, PSTR("no"))) {
-		this->trace_P0(PSTR("authenticate: nope"));
+
+	// Arduino So Weird. If you call get_msg and pass the var as-is, just
+	// calling this fcn. reboots the microcontroller -- and not even the
+	// write_P0s above get called.
+	//   bool received = this->get_msg(response, comm_len);
+	bool received = this->get_msg(&response[0], comm_len);
+
+	if (received) {
+		this->trace_P0(PSTR("authenticate: response received"));
+		if (response[0] == '\0') {
+			// FIXME: Timeout?
+			this->trace_P0(PSTR("authenticate: WARNING: timeout/No response"));
+		}
+		// NOTE: If you use strcmp(), even if this code is not executed,
+		//       it seems to cause this function to hang.
+		else if (strcmp_P(response, PSTR("ok"))) {
+			this->trace_P0(PSTR("authenticate: okay"));
+			authenticated = true;
+		}
+		else if (strcmp_P(response, PSTR("no"))) {
+			this->trace_P0(PSTR("authenticate: nope"));
+		}
+		else {
+			this->trace_P(PSTR("authenticate: WARNING: unexpected response: %s"), response);
+		}
 	}
 	else {
-		this->trace_P(PSTR("authenticate: WARNING: unexpected response: %s"), response);
+		this->trace_P0(PSTR("authenticate: WARNING: no response"));
 	}
 
 	return authenticated;
@@ -201,19 +237,26 @@ void CommUpstream::put_msg(const char *msg) {
 }
 
 bool CommUpstream::get_msg(char *msg, size_t nbytes) {
+	bool msg_received = false;
+	msg[0] = '\0';
+
 	if (!DEBUG) {
 		size_t bytes_read = this->upstream->readBytesUntil('\n', msg, nbytes);
 		// NOTE: Don't care about bytes_read, except maybe if == nbytes.
-		if (bytes_read == nbytes) {
-			this->trace_P(PSTR("get_msg: WARNING: read max nbytes: %d"),  nbytes);
+		if (bytes_read > 0) {
+			msg_received = true;
+			if (bytes_read == nbytes) {
+				this->trace_P(PSTR("get_msg: WARNING: read max nbytes: %lu"),  nbytes);
+			}
+			this->trim_msg(msg, bytes_read);
 		}
-		this->trim_msg(msg, nbytes);
 	}
 	else {
 		// FIXME/Whatever: This is useless.
 		snprintf_P(msg, nbytes, PSTR("MOCK/get_msg"));
 	}
-	return msg;
+
+	return msg_received;
 }
 
 void CommUpstream::trim_msg(char *msg, size_t nbytes) {
@@ -225,7 +268,7 @@ void CommUpstream::trim_msg(char *msg, size_t nbytes) {
 		}
 		// else, keep looking.
 	}
-	if (msg_len < nbytes) {
+	if ((msg_len > 0) && (msg_len < nbytes)) {
 		msg_len -= 1;
 		while (msg_len >= 0) {
 			if (isspace(msg[msg_len])) {
@@ -313,7 +356,7 @@ bool CommUpstream::get_ulong(unsigned long &num) {
 				}
 			}
 			else {
-				this->trace_P(PSTR("get_ulong: timeout: num: %d"), num);
+				this->trace_P(PSTR("get_ulong: timeout: num: %lu"), num);
 			}
 		}
 	}

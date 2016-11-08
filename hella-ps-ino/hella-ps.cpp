@@ -84,7 +84,7 @@ void Helladuino::setup(void) {
 	this->trace_P(PSTR("Hello, %s!"), "Beer");
 
 	// Get the pins setup next so we can light up the user display.
-	this->pins->setup();
+	this->pins->setup(this);
 
 	// 2016-11-03: We fried the Sparkfun RFID reader.
 	//rfid_setup();

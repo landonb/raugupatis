@@ -34,25 +34,16 @@ void StateMachine::loop(void) {
 
 	this->check_timers_state();
 
-	//if (DEBUG) {
-	//	this->comm->trace_P0(PSTR("StateMachine::loop: delay 987..."));
-	//	delay(987);
-	//}
-	curr_loop_n += 1;
+	this->curr_loop_n += 1;
 	unsigned long curr_millis = millis();
-	if ((curr_millis - prev_millis) > timeouts.report_interval) {
-		prev_loop_n = curr_loop_n;
-		prev_millis = curr_millis;
-		// ARGH/WHATEVER: The second param in this trace prints out as "0".
-		// Whatever. I've struggled enough with trace and PSTR and being a
-		// good memory caretaker. I won't worry about this.
-		//this->comm->trace_P(
-		//	PSTR("StateMachine::loop: count: %d / millis: %d"),
-		//	curr_loop_n,
-		//	curr_millis
-		//);
-		this->comm->trace_P(PSTR("StateMachine::loop: count: %d"), curr_loop_n);
-		this->comm->trace_P(PSTR("StateMachine::loop: milli: %d"), curr_millis);
+	if ((curr_millis - this->prev_millis) > timeouts.report_interval) {
+		this->prev_loop_n = this->curr_loop_n;
+		this->prev_millis = curr_millis;
+		this->comm->trace_P(
+			PSTR("StateMachine::loop: count: %lu / millis: %lu"),
+			this->curr_loop_n,
+			curr_millis
+		);
 		this->update_state = true;
 		this->update_key_status = true;
 	}
@@ -146,7 +137,8 @@ void StateMachine::check_beerme_state(void) {
 			// Skipping: STATE_SKULKING
 		) {
 			char t_or_f = latest_beerme ? 'T' : 'F';
-			this->comm->trace_P(PSTR("check_beerme_state: latest_beerme: %s"), t_or_f);
+			////this->comm->trace_P(PSTR("check_beerme_state: latest_beerme: %s"), t_or_f);
+			this->comm->trace_P(PSTR("check_beerme_state: latest_beerme: %c"), t_or_f);
 
 			if (latest_beerme) {
 				if (this->state == STATE_BORED) {
@@ -161,7 +153,8 @@ void StateMachine::check_beerme_state(void) {
 				}
 				else {
 					// STATE_POURING. And latest_beerme? Shouldn't happen.
-					contract(false, __FILE__, __LINE__);
+					//contract(false, __FILE__, __LINE__);
+					contract(false, 123, __LINE__);
 				}
 			}
 			else {
@@ -171,7 +164,8 @@ void StateMachine::check_beerme_state(void) {
 				}
 				else {
 					// STATE_ENGAGED or STATE_DEGAGING. And !latest_beerme? Shouldn't happen.
-					contract(false, __FILE__, __LINE__);
+					//contract(false, __FILE__, __LINE__);
+					contract(false, 123, __LINE__);
 				}
 			}
 		}
@@ -203,15 +197,18 @@ void StateMachine::check_atoken_state(void) {
 		snprintf_P(status_label, buf_len, this->bluedot->get_key_status_name(key_status));
 
 		if (key_status == BLUEDOT_KEY_STATUS_VALID) {
-			this->comm->trace_P0(PSTR("check_atoken_state: ibutton_addr:"));
-			for (int i = 0; i < 8; i++) {
-				this->comm->trace_P(PSTR(" index: %s / 0x%x"), i, ibutton_addr[i]);
-			}
-			// FIXME: See if this works now with the PSTR fixes:
-			this->comm->trace_P(
-				PSTR("check_atoken_state: key_status: %s / ibutton_addr: %.*s"),
-				status_label, 8, ibutton_addr
-			);
+			//this->comm->write_P0(PSTR("check_atoken_state: ibutton_addr:"));
+
+			// Seems to print them all then board reboots?
+			//for (int i = 0; i < 8; i++) {
+			//	this->comm->trace_P(PSTR(" index: %s / 0x%x"), i, ibutton_addr[i]);
+			//}
+
+			// Prints 't' and hangs?:
+			//this->comm->trace_P(
+			//	PSTR("check_atoken_state: key_status: %s / ibutton_addr: %.*s"),
+			//	status_label, 8, ibutton_addr
+			//);
 
 			bool authenticated = this->comm->authenticate(ibutton_addr);
 			if (authenticated) {
@@ -261,7 +258,7 @@ void StateMachine::check_timers_state(void) {
 			break;
 		case STATE_BUZZ_OFF:
 			// An animation state. Resume being bored when finished animating.
-			if (state_uptime >= timeouts.degaging) {
+			if (state_uptime >= timeouts.buzzing_off) {
 				this->transition(STATE_BORED);
 			}
 			// else, this->pins->animate will handle the lights for this state.
@@ -301,7 +298,8 @@ void StateMachine::check_timers_state(void) {
 			break;
 		case STATE_STEALING:
 			// Unreachable/already handled.
-			contract(false, __FILE__, __LINE__);
+			//contract(false, __FILE__, __LINE__);
+			contract(false, 123, __LINE__);
 			break;
 			// An animation state. Become stolen when finished animating.
 			if (state_uptime >= timeouts.stealing) {
@@ -325,7 +323,8 @@ void StateMachine::check_timers_state(void) {
 		default:
 			// Unreachable.
 			this->comm->trace_P(PSTR("check_beerme_state: state: %d"), this->state);
-			contract(false, __FILE__, __LINE__);
+			//contract(false, __FILE__, __LINE__);
+			contract(false, 123, __LINE__);
 			break;
 	}
 
@@ -350,7 +349,7 @@ void StateMachine::check_timers_state(void) {
 		int buf_len = 16;
 		char state_name[buf_len];
 		snprintf_P(state_name, buf_len, this->get_state_name());
-		this->comm->trace_P(PSTR("StateMachine::loop: Final state: %s"), state_name);
+		this->comm->trace_P(PSTR("StateMachine::loop: final state: %s"), state_name);
 		this->update_state = false;
 	}
 }
@@ -420,11 +419,13 @@ void StateMachine::transition(HellaState new_state) {
 	int buf_len = 16;
 	char state_name[buf_len];
 	snprintf_P(state_name, buf_len, this->get_state_name());
-	this->comm->trace_P(
-		PSTR("StateMachine::transition: New state: %s / time_0: %d"),
-		state_name,
-		this->state_time_0
-	);
+	//this->comm->trace_P(
+	//	PSTR("StateMachine::transition: state_name: %s / time_0: %lu"),
+	//	state_name,
+	//	this->state_time_0
+	//);
+	this->comm->trace_P(PSTR("StateMachine::transition: state_name: %s"), state_name);
+	this->comm->trace_P(PSTR("StateMachine::transition: time_0: %lu"), this->state_time_0);
 }
 
 void StateMachine::adjust_beerme_state(HellaState new_state) {
@@ -453,7 +454,7 @@ const char *StateMachine::get_state_name(HellaState state) {
 		case STATE_BORED:
 			return PSTR("Bored");
 		case STATE_BUZZ_OFF:
-			return PSTR("Buff Off!");
+			return PSTR("Buzz Off!");
 		case STATE_ENGAGING:
 			return PSTR("Engaging");
 		case STATE_ENGAGED:

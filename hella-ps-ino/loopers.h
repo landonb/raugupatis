@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.07
+// Last Modified: 2016.11.08
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -12,6 +12,8 @@ void loopers_setup(void);
 void loopers_loop(void);
 
 void contract(const bool assertion, const char *file, const unsigned long line);
+
+void contract(const bool assertion, const unsigned long file, const unsigned long line);
 
 #endif // __LOOPERS_H__
 

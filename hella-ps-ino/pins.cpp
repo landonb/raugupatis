@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.07
+// Last Modified: 2016.11.08
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -7,15 +7,23 @@
 
 #include "pins.h"
 
+// Include contract().
+#include "loopers.h"
+
+#include "comm.h"
 #include "state.h"
 
 volatile bool beerme_state_ = false;
+volatile unsigned long beerme_events = 0;
+volatile bool beerme_ignore = false;
 
 volatile unsigned long flowmeter_count_ = 0;
 
 // Setup routine.
 
-void InputsOutputs::setup() {
+void InputsOutputs::setup(Helladuino *hellaps) {
+	this->comm = hellaps->comm;
+
 	this->hook_beerme_button();
 	this->hook_flowmeter();
 	this->hook_steal_button();
@@ -28,7 +36,11 @@ void InputsOutputs::setup() {
 // ISRs.
 
 void InputsOutputs::on_action_button_isr(void) {
-	beerme_state_ = !beerme_state_;
+	// When animating...
+	if (!beerme_ignore) {
+		beerme_state_ = !beerme_state_;
+		beerme_events += 1;
+	}
 }
 
 // FIXME/FLOWMETER: This is icing on the cake if we get everything else done.
@@ -107,6 +119,10 @@ void InputsOutputs::hook_test_indicator(void) {
 // Runtime routines.
 
 bool InputsOutputs::get_beerme_state(void) {
+	if (beerme_state_) {
+		this->comm->upstream->print("get_beerme_state: beerme_events: ");
+		this->comm->upstream->println(beerme_events);
+	}
 	return beerme_state_;
 }
 
@@ -124,12 +140,19 @@ uint8_t InputsOutputs::check_steal_button(void) {
 }
 
 void InputsOutputs::transition(HellaState new_state) {
+	this->animator = NULL;
+	beerme_ignore = false;
 	// The analogWrite duty cycle is from 0 to 255 and affects LED brightness.
-	int test_indicator_duty_cycle = 0;
+	int test_indicator_duty_cycle = 15;
 	// Crude. Dirty. State change.
 	switch (new_state) {
 		case STATE_NONE:
 			// Impossible. Just bleed into STATE_BORED.
+			// MAYBE: Using SRAM char* adds 42 bytes to global memory.
+			//        Maybe try wrapping in PSTR.
+			//        For now, just using a number instead.
+			//contract(false, __FILE__, __LINE__);
+			contract(false, 345, __LINE__);
 		case STATE_BORED:
 			digitalWrite(pinouts.ready_indicator, HIGH);
 			digitalWrite(pinouts.authed_indicator, LOW);
@@ -141,14 +164,8 @@ void InputsOutputs::transition(HellaState new_state) {
 			test_indicator_duty_cycle = 15;
 			break;
 		case STATE_BUZZ_OFF:
-			digitalWrite(pinouts.ready_indicator, LOW);
-			digitalWrite(pinouts.authed_indicator, LOW);
-			digitalWrite(pinouts.failed_indicator, HIGH);
-			digitalWrite(pinouts.action_indicator, LOW);
-			digitalWrite(pinouts.steal_indicator, LOW);
-			//digitalWrite(pinouts.noise_indicator, LOW);
-	      	digitalWrite(pinouts.beer_solenoid, HIGH);
-			test_indicator_duty_cycle = 15;
+			this->animator = this->animate_annoyed;
+			beerme_ignore = true;
 			break;
 		case STATE_ENGAGING:
 			break;
@@ -208,45 +225,58 @@ void InputsOutputs::transition(HellaState new_state) {
 	}
 
 	analogWrite(pinouts.test_indicator, test_indicator_duty_cycle);
+
+	this->last_animate_time = 0;
 }
 
-// FIXME: ANIMATE
 void InputsOutputs::animate(HellaState new_state, unsigned long state_time_0) {
 	// The pins.cpp code is mostly reactive, except for a few transitional
 	// states where we just let this module twiddle whatever it wants.
-	//
-// FIXME: During these states and state changes make lots of noise and do flashy things.
-	//
-	switch (new_state) {
-		case STATE_NONE:
-			break;
-		case STATE_BORED:
-			break;
-		case STATE_BUZZ_OFF:
-			break;
-		case STATE_ENGAGING:
-			break;
-		case STATE_ENGAGED:
-			break;
-		case STATE_PATIENCE:
-			break;
-		case STATE_POURING:
-			break;
-		case STATE_GULPING:
-			break;
-		case STATE_DEGAGING:
-			break;
-		case STATE_EIGHTYSIX:
-			break;
-		case STATE_STEALING:
-			break;
-		case STATE_STOLEN:
-			break;
-		case STATE_SKULKING:
-			break;
-		default:
-			// Unreachable.
-			break;
+	if (this->animator != NULL) {
+		unsigned long curr_time = millis();
+		this->animator(curr_time, state_time_0, this->last_animate_time);
+		this->last_animate_time = curr_time;
+	}
+}
+
+void InputsOutputs::animate_annoyed(
+	unsigned long curr_time,
+	unsigned long state_time_0,
+	unsigned long last_animate_time
+) {
+	if (last_animate_time == 0) {
+		digitalWrite(pinouts.ready_indicator, LOW);
+		digitalWrite(pinouts.authed_indicator, LOW);
+		digitalWrite(pinouts.failed_indicator, HIGH);
+		digitalWrite(pinouts.action_indicator, LOW);
+		digitalWrite(pinouts.steal_indicator, LOW);
+		//digitalWrite(pinouts.noise_indicator, LOW);
+		digitalWrite(pinouts.beer_solenoid, HIGH);
+	}
+	else {
+		unsigned long elapsed = curr_time - state_time_0;
+		if (elapsed > 1000) {
+			unsigned long half_sec = elapsed / 500;
+			if ((half_sec % 2) == 0) {
+				digitalWrite(pinouts.ready_indicator, HIGH);
+				digitalWrite(pinouts.authed_indicator, HIGH);
+				digitalWrite(pinouts.failed_indicator, LOW);
+			}
+			else {
+				digitalWrite(pinouts.ready_indicator, LOW);
+				digitalWrite(pinouts.authed_indicator, LOW);
+				digitalWrite(pinouts.failed_indicator, HIGH);
+			}
+			unsigned long fifth_sec = elapsed / 200;
+			if ((fifth_sec % 2) == 0) {
+				digitalWrite(pinouts.action_indicator, HIGH);
+				digitalWrite(pinouts.steal_indicator, LOW);
+			}
+			else {
+				digitalWrite(pinouts.action_indicator, LOW);
+				digitalWrite(pinouts.steal_indicator, HIGH);
+			}
+		}
 	}
 }
 
