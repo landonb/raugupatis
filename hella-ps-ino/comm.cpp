@@ -48,9 +48,6 @@ void CommUpstream::vtrace(const char *fmt, va_list argp) {
 
 // PSTR()s have to be specially treated [vsnprintf_P].
 void CommUpstream::trace_P(const char *fmt, ...) {
-//Serial.println("trace_P");
-Serial.println("LET DO THIS trace_P");
-//Serial.println("LET DO THIS trace_P");
 	va_list argp;
 	va_start(argp, fmt);
 	char payload[comm_len];
