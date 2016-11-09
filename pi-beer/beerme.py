@@ -381,8 +381,8 @@ class Pibeer(object):
         resp = 'ok' if authenticated else 'no'
         trace("handle_cmd_authenticate: token: %s / resp: %s" % (token, resp,))
 
-        #self.serial.write(resp.encode('utf-8'))
-        self.serial.write(resp)
+        self.serial.write(resp.encode('utf-8'))
+#        self.serial.write(resp)
         self.serial.flush()
 
     def sphinx_authenticate(self, token):
