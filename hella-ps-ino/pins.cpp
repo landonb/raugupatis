@@ -365,6 +365,12 @@ void InputsOutputs::animate_pouring() {
 
 void InputsOutputs::animate_gulping() {
 	if (this->last_animate_time == 0) {
+		digitalWrite(pinouts.ready_indicator, LOW);
+		digitalWrite(pinouts.authed_indicator, LOW);
+		digitalWrite(pinouts.failed_indicator, HIGH);
+		digitalWrite(pinouts.action_indicator, LOW);
+		digitalWrite(pinouts.steal_indicator, LOW);
+		//digitalWrite(pinouts.noise_indicator, LOW);
 		digitalWrite(pinouts.beer_solenoid, HIGH);
 	}
 	else {
@@ -375,6 +381,15 @@ void InputsOutputs::animate_degaging() {
 	if (this->last_animate_time == 0) {
 	}
 	else {
+		unsigned long hundreth_millis = this->state_elapsed / 100;
+		if ((twentieth_millis % 2) == 0) {
+			digitalWrite(pinouts.authed_indicator, LOW);
+			digitalWrite(pinouts.failed_indicator, HIGH);
+		}
+		else {
+			digitalWrite(pinouts.authed_indicator, HIGH);
+			digitalWrite(pinouts.failed_indicator, LOW);
+		}
 	}
 }
 

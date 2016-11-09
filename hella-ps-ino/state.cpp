@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.08
+// Last Modified: 2016.11.09
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -369,6 +369,7 @@ void StateMachine::check_timers_pouring_or_stolen(unsigned long state_uptime) {
 		// The beer has not moved! What is wrong with people?
 		unsigned long void_time_elapsed = pour_time_n - this->last_time;
 		if (void_time_elapsed > timeouts.pouring_idle) {
+		// NOTE/2016-11-09: currently, pouring_idle > wait_pouring, so this never runs.
 			// Gulping immediately closes the solenoid. We'll see
 			// how popular this is, especially if flowmeter isn't
 			// connected!

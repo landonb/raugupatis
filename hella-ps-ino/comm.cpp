@@ -268,7 +268,7 @@ bool CommUpstream::get_msg(char *msg, size_t nbytes) {
 	if (!DEBUG) {
 // FIXME: [lb] not sure, but readBytesUntil seems to ignore \n and \r triggers...
 		size_t bytes_read = this->upstream->readBytesUntil('\n', msg, nbytes);
-		//size_t bytes_read = this->upstream->readBytesUntil('\r', msg, nbytes);
+//size_t bytes_read = this->upstream->readBytesUntil('\r', msg, nbytes);
 		if (bytes_read < nbytes) {
 			msg[bytes_read] = '\0';
 		}
