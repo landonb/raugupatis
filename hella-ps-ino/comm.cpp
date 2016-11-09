@@ -32,6 +32,13 @@ void CommUpstream::setup(void) {
 		Serial.println("Serial READY");
 	}
 	this->upstream = &Serial;
+
+
+// FIXME: Is this necessary? My first "real read" keeps returning naught.
+	char response[comm_len];
+	bool received = this->get_msg(&response[0], comm_len);
+// 2016-11-08: Crap. Didn't help...
+
 }
 
 void CommUpstream::trace(const char *fmt, ...) {
@@ -161,12 +168,17 @@ bool CommUpstream::authenticate(uint8_t ibutton_addr[8]) {
 	// write_P0s above get called.
 	//   bool received = this->get_msg(response, comm_len);
 
-	//Serial.setTimeout(5000);
+	// Without setting the timeout higher, the message is missed.
+	// FIXME: The timeout runs to completion!
+	//        The readBytesUntil does not seem to work.
+	//        Maybe just expect the exact number of bytes,
+	//          or read one by one.
+	Serial.setTimeout(5000);
 
 	bool received = this->get_msg(&response[0], comm_len);
 
 	// The normal timeout is 1000.
-	//Serial.setTimeout(1000);
+	Serial.setTimeout(1000);
 
 	if (received) {
 		if (response[0] == '\0') {

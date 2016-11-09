@@ -429,6 +429,7 @@ void StateMachine::transition(HellaState new_state) {
 }
 
 void StateMachine::adjust_beerme_state(HellaState new_state) {
+	this->comm->trace_P(PSTR("StateMachine::adjust_beerme_state: new_state: %d"), new_state);
 	if (false
 		|| (new_state == STATE_POURING)
 		|| (new_state == STATE_STOLEN)

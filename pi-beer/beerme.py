@@ -256,7 +256,11 @@ class Pibeer(object):
             #trace("Calling self.serial.read...")
             next_ch_ = self.serial.read(1)
             if len(next_ch_):
+                next_ch = next_ch_.decode('utf-8')
                 trace("clear_serial: discard char: %s" % (next_ch_,))
+                if next_ch == '\n':
+                    # Let's give up here?
+                    break
             else:
                 # Nothing returned, assume buffer is empty.
                 trace("clear_serial: all clear")
