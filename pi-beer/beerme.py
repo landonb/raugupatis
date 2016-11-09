@@ -354,13 +354,14 @@ class Pibeer(object):
         next_chs_ = self.serial.read(2)
         if len(next_chs_):
             assert(len(next_chs_) == 2)
-            # next_chs_ is a bytes, which we can access like a list.
-            if next_chs_[0] != '\r':
+            next_chs = next_chs_.decode('utf-8')
+# next_chs_ is a bytes, which we can access like a list.
+            if next_chs[0] != '\r':
                 raise BeermeSerialException(
                     "WARNING: Expected carriage return after token: %s / next_ch: %s"
                     % (token, next_chs_,)
                 )
-            if next_chs_[1] != '\n':
+            if next_chs[1] != '\n':
                 raise BeermeSerialException(
                     "WARNING: Expected newline after carriage return after token: %s / next_ch: %s"
                     % (token, next_chs_,)
