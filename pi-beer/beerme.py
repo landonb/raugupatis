@@ -274,7 +274,12 @@ class Pibeer(object):
             next_ch_ = self.serial.read(1)
             if len(next_ch_):
                 #char = chr(next_ch_[0])
-                char = next_ch_.decode('utf-8')
+                try:
+                    char = next_ch_.decode('utf-8')
+                except Exception as err:
+#
+                    import pdb;pdb.set_trace()
+                    pass
                 if char == '\r':
                     # Skip carriage return.
                     continue
