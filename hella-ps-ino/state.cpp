@@ -149,7 +149,7 @@ void StateMachine::check_beerme_state(void) {
 					|| (this->state == STATE_ENGAGED)
 					|| (this->state == STATE_DEGAGING)
 				) {
-					this->transition(STATE_ENGAGING);
+					this->transition(STATE_POURING);
 				}
 				else {
 					// STATE_POURING. And latest_beerme? Shouldn't happen.

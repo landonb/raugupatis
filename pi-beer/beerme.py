@@ -424,8 +424,39 @@ class Pibeer(object):
         return authenticated
 
     def handle_cmd_update_flow(self):
-        # FIXME: Implement this.
-        pass
+        # FIXME: Finish implementing. Consume this data.
+
+        line = self.read_line_serial()
+        if line != 'state':
+            raise BeermeSerialException(
+                "WARNING: handle_cmd_update_flow: expected: state / got: %s"
+                % (line,)
+            )
+
+        state = self.read_line_serial()
+        # FIXME: Do what with this data?
+
+        line = self.read_line_serial()
+        if line != 'blips':
+            raise BeermeSerialException(
+                "WARNING: handle_cmd_update_flow: expected: blips / got: %s"
+                % (line,)
+            )
+
+        blips = self.read_line_serial()
+        # FIXME: Do what with this data?
+
+        line = self.read_line_serial()
+        if line != 'msecs':
+            raise BeermeSerialException(
+                "WARNING: handle_cmd_update_flow: expected: msecs / got: %s"
+                % (line,)
+            )
+
+        msecs = self.read_line_serial()
+        # FIXME: Do what with this data?
+
+        trace('handle_cmd_update_flow: state: %s / blips: %s / msecs: %s', state, blips, msecs)
 
     def handle_cmd_trace(self):
         # MAYBE: Should we loop until footer found?
@@ -443,7 +474,7 @@ class Pibeer(object):
                 trace("INO says: %s" % (msg,))
             else:
                 #raise BeermeSerialException("WARNING: handle_cmd_trace: No msg found")
-                trace("NOTICE: INO says: NOTHING")
+                trace("WARNING: INO says: NOTHING")
 
 # ***
 

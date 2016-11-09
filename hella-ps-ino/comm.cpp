@@ -160,10 +160,13 @@ bool CommUpstream::authenticate(uint8_t ibutton_addr[8]) {
 	// calling this fcn. reboots the microcontroller -- and not even the
 	// write_P0s above get called.
 	//   bool received = this->get_msg(response, comm_len);
-	Serial.setTimeout(5000);
+
+	//Serial.setTimeout(5000);
+
 	bool received = this->get_msg(&response[0], comm_len);
+
 	// The normal timeout is 1000.
-	Serial.setTimeout(1000);
+	//Serial.setTimeout(1000);
 
 	if (received) {
 		if (response[0] == '\0') {
@@ -205,10 +208,12 @@ void CommUpstream::update_flow(
 	this->put_raw(state_name);
 	// - Blips elapsed in this state.
 	this->put_msg(PSTR("blips"));
-	this->put_ulong(elapsed_blip);
+	//this->put_ulong(elapsed_blip);
+	this->upstream->println(elapsed_blip);
 	// - Msecs. elapsed in this state.
 	this->put_msg(PSTR("msecs"));
-	this->put_ulong(elapsed_time);
+	//this->put_ulong(elapsed_time);
+	this->upstream->println(elapsed_time);
 	// Outro.
 	this->put_msg(PSTR("bye"));
 }
@@ -244,7 +249,9 @@ bool CommUpstream::get_msg(char *msg, size_t nbytes) {
 	msg[0] = '\0';
 
 	if (!DEBUG) {
+// FIXME: [lb] not sure, but readBytesUntil seems to ignore \n and \r triggers...
 		size_t bytes_read = this->upstream->readBytesUntil('\n', msg, nbytes);
+		//size_t bytes_read = this->upstream->readBytesUntil('\r', msg, nbytes);
 		if (bytes_read < nbytes) {
 			msg[bytes_read] = '\0';
 		}
