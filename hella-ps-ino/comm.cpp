@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.08
+// Last Modified: 2016.11.09
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -173,12 +173,14 @@ bool CommUpstream::authenticate(uint8_t ibutton_addr[8]) {
 	//        The readBytesUntil does not seem to work.
 	//        Maybe just expect the exact number of bytes,
 	//          or read one by one.
-	Serial.setTimeout(5000);
+
+// FIXME: This seems high...
+//	Serial.setTimeout(5000);
 
 	bool received = this->get_msg(&response[0], comm_len);
 
 	// The normal timeout is 1000.
-	Serial.setTimeout(1000);
+//	Serial.setTimeout(1000);
 
 	if (received) {
 		if (response[0] == '\0') {

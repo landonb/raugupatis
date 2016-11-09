@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.08
+// Last Modified: 2016.11.09
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -141,11 +141,14 @@ uint8_t InputsOutputs::check_steal_button(void) {
 }
 
 void InputsOutputs::transition(HellaState new_state) {
-	this->animator = NULL;
 	beerme_ignore = false;
-	// The analogWrite duty cycle is from 0 to 255 and affects LED brightness.
-	int test_indicator_duty_cycle = 15;
-	// Crude. Dirty. State change.
+	this->animator = NULL;
+	this->last_animate_time = 0;
+	this->curr_time = 0;
+	this->state_time_0 = 0;
+	this->last_animate_time = 0;
+	this->state_elapsed = 0;
+
 	switch (new_state) {
 		case STATE_NONE:
 			// Impossible. Just bleed into STATE_BORED.
@@ -155,98 +158,112 @@ void InputsOutputs::transition(HellaState new_state) {
 			//contract(false, __FILE__, __LINE__);
 			contract(false, 345, __LINE__);
 		case STATE_BORED:
-			digitalWrite(pinouts.ready_indicator, HIGH);
-			digitalWrite(pinouts.authed_indicator, LOW);
-			digitalWrite(pinouts.failed_indicator, LOW);
-			digitalWrite(pinouts.action_indicator, LOW);
-			digitalWrite(pinouts.steal_indicator, LOW);
-			//digitalWrite(pinouts.noise_indicator, LOW);
-			digitalWrite(pinouts.beer_solenoid, HIGH);
-			test_indicator_duty_cycle = 15;
+			this->animator = this->animate_bored;
 			break;
 		case STATE_BUZZ_OFF:
-			this->animator = this->animate_annoyed;
+			this->animator = this->animate_buzz_off;
+			// We fiddle with the Green Button light,
+			// which (unexpectedly?) triggers the ISR.
 			beerme_ignore = true;
 			break;
 		case STATE_ENGAGING:
+			this->animator = this->animate_engaging;
+			beerme_ignore = true;
 			break;
 		case STATE_ENGAGED:
-			digitalWrite(pinouts.ready_indicator, LOW);
-			digitalWrite(pinouts.authed_indicator, HIGH);
-			digitalWrite(pinouts.failed_indicator, LOW);
-			digitalWrite(pinouts.action_indicator, LOW);
-			digitalWrite(pinouts.steal_indicator, LOW);
-			//digitalWrite(pinouts.noise_indicator, LOW);
-			digitalWrite(pinouts.beer_solenoid, HIGH);
-			test_indicator_duty_cycle = 45;
+			this->animator = this->animate_engaged;
+			beerme_ignore = false;
 			break;
 		case STATE_PATIENCE:
+			this->animator = this->animate_patience;
+			beerme_ignore = true;
 			break;
 		case STATE_POURING:
-			digitalWrite(pinouts.ready_indicator, LOW);
-			digitalWrite(pinouts.authed_indicator, HIGH);
-			digitalWrite(pinouts.failed_indicator, LOW);
-			digitalWrite(pinouts.action_indicator, HIGH);
-			digitalWrite(pinouts.steal_indicator, LOW);
-			//digitalWrite(pinouts.noise_indicator, LOW);
-			digitalWrite(pinouts.beer_solenoid, LOW);
-			test_indicator_duty_cycle = 75;
+			this->animator = this->animate_pouring;
+			beerme_ignore = false;
 			break;
 		case STATE_GULPING:
-			digitalWrite(pinouts.beer_solenoid, HIGH);
+			this->animator = this->animate_gulping;
+			beerme_ignore = false;
 			break;
 		case STATE_DEGAGING:
+			this->animator = this->animate_degaging;
+			beerme_ignore = false;
 			break;
 		case STATE_EIGHTYSIX:
-			digitalWrite(pinouts.ready_indicator, LOW);
-			digitalWrite(pinouts.authed_indicator, LOW);
-			digitalWrite(pinouts.failed_indicator, HIGH);
-			digitalWrite(pinouts.action_indicator, LOW);
-			digitalWrite(pinouts.steal_indicator, LOW);
-			//digitalWrite(pinouts.noise_indicator, LOW);
-			digitalWrite(pinouts.beer_solenoid, HIGH);
-			test_indicator_duty_cycle = 15;
+			this->animator = this->animate_eightsix;
+			beerme_ignore = true;
 			break;
 		case STATE_STEALING:
+			this->animator = this->animate_stealing;
+			beerme_ignore = true;
 			break;
 		case STATE_STOLEN:
-			digitalWrite(pinouts.ready_indicator, LOW);
-			digitalWrite(pinouts.authed_indicator, HIGH);
-			digitalWrite(pinouts.failed_indicator, LOW);
-			digitalWrite(pinouts.action_indicator, LOW);
-			digitalWrite(pinouts.steal_indicator, HIGH);
-			//digitalWrite(pinouts.noise_indicator, HIGH);
-			digitalWrite(pinouts.beer_solenoid, LOW);
-			test_indicator_duty_cycle = 105;
+			this->animator = this->animate_stolen;
+			beerme_ignore = false;
 			break;
 		case STATE_SKULKING:
+			this->animator = this->animate_skulking;
+			beerme_ignore = true;
 			break;
 		default:
 			// Unreachable.
 			break;
 	}
 
-	analogWrite(pinouts.test_indicator, test_indicator_duty_cycle);
-
-	this->last_animate_time = 0;
+	// 2016-11-09: The LED was just for testing.
+	//int test_indicator_duty_cycle = 15;
+	// The analogWrite duty cycle is from 0 to 255 and affects LED brightness.
+	//analogWrite(pinouts.test_indicator, test_indicator_duty_cycle);
 }
 
 void InputsOutputs::animate(HellaState new_state, unsigned long state_time_0) {
 	// The pins.cpp code is mostly reactive, except for a few transitional
 	// states where we just let this module twiddle whatever it wants.
 	if (this->animator != NULL) {
-		unsigned long curr_time = millis();
-		this->animator(curr_time, state_time_0, this->last_animate_time);
-		this->last_animate_time = curr_time;
+		this->curr_time = millis();
+		this->state_elapsed = this->curr_time - state_time_0;
+		this->animator();
+		this->last_animate_time = this->curr_time;
 	}
 }
 
-void InputsOutputs::animate_annoyed(
-	unsigned long curr_time,
-	unsigned long state_time_0,
-	unsigned long last_animate_time
-) {
-	if (last_animate_time == 0) {
+void InputsOutputs::animate_bored() {
+	if (this->last_animate_time == 0) {
+		digitalWrite(pinouts.ready_indicator, HIGH);
+		digitalWrite(pinouts.authed_indicator, LOW);
+		digitalWrite(pinouts.failed_indicator, LOW);
+		digitalWrite(pinouts.action_indicator, LOW);
+		digitalWrite(pinouts.steal_indicator, LOW);
+		//digitalWrite(pinouts.noise_indicator, LOW);
+		digitalWrite(pinouts.beer_solenoid, HIGH);
+	}
+	else {
+		// Fast blink ready_indicator for 1st 200 millis of each
+		// second, then off from 200-300, then on 'til 1000.
+		unsigned long millis_after_sec =
+			this->state_elapsed - ((this->state_elapsed / 1000) * 1000)
+		;
+		if (millis_after_sec < 200) {
+			unsigned long tenth_millis = this->state_elapsed / 10;
+			if ((tenth_millis % 2) == 0) {
+				digitalWrite(pinouts.ready_indicator, LOW);
+			}
+			else {
+				digitalWrite(pinouts.ready_indicator, HIGH);
+			}
+		}
+		else if (millis_after_sec < 300) {
+			digitalWrite(pinouts.ready_indicator, LOW);
+		}
+		else {
+			digitalWrite(pinouts.ready_indicator, HIGH);
+		}
+	}
+}
+
+void InputsOutputs::animate_buzz_off(
+	if (this->last_animate_time == 0) {
 		digitalWrite(pinouts.ready_indicator, LOW);
 		digitalWrite(pinouts.authed_indicator, LOW);
 		digitalWrite(pinouts.failed_indicator, HIGH);
@@ -256,20 +273,19 @@ void InputsOutputs::animate_annoyed(
 		digitalWrite(pinouts.beer_solenoid, HIGH);
 	}
 	else {
-		unsigned long elapsed = curr_time - state_time_0;
-		if (elapsed > 1000) {
-			unsigned long half_sec = elapsed / 500;
+		if (this->state_elapsed > 1000) {
+			unsigned long half_sec = this->state_elapsed / 500;
 			if ((half_sec % 2) == 0) {
-				digitalWrite(pinouts.ready_indicator, HIGH);
-				digitalWrite(pinouts.authed_indicator, HIGH);
-				digitalWrite(pinouts.failed_indicator, LOW);
-			}
-			else {
 				digitalWrite(pinouts.ready_indicator, LOW);
-				digitalWrite(pinouts.authed_indicator, LOW);
+				digitalWrite(pinouts.authed_indicator, HIGH);
 				digitalWrite(pinouts.failed_indicator, HIGH);
 			}
-			unsigned long fifth_sec = elapsed / 200;
+			else {
+				digitalWrite(pinouts.ready_indicator, HIGH);
+				digitalWrite(pinouts.authed_indicator, LOW);
+				digitalWrite(pinouts.failed_indicator, LOW);
+			}
+			unsigned long fifth_sec = this->state_elapsed / 200;
 			if ((fifth_sec % 2) == 0) {
 				digitalWrite(pinouts.action_indicator, HIGH);
 				digitalWrite(pinouts.steal_indicator, LOW);
@@ -279,6 +295,128 @@ void InputsOutputs::animate_annoyed(
 				digitalWrite(pinouts.steal_indicator, HIGH);
 			}
 		}
+		else if (this->state_elapsed > 500) {
+			unsigned long twentieth_millis = this->state_elapsed / 20;
+			if ((twentieth_millis % 2) == 0) {
+				digitalWrite(pinouts.failed_indicator, LOW);
+			}
+			else {
+				digitalWrite(pinouts.failed_indicator, HIGH);
+			}
+		}
+	}
+}
+
+void InputsOutputs::animate_engaging() {
+	if (this->last_animate_time == 0) {
+		digitalWrite(pinouts.ready_indicator, HIGH);
+		digitalWrite(pinouts.authed_indicator, LOW);
+		digitalWrite(pinouts.failed_indicator, LOW);
+		digitalWrite(pinouts.action_indicator, LOW);
+		digitalWrite(pinouts.steal_indicator, LOW);
+		//digitalWrite(pinouts.noise_indicator, LOW);
+		digitalWrite(pinouts.beer_solenoid, HIGH);
+	}
+	else {
+		unsigned long hundreth_millis = this->state_elapsed / 100;
+		if ((twentieth_millis % 2) == 0) {
+			digitalWrite(pinouts.failed_indicator, LOW);
+		}
+		else {
+			digitalWrite(pinouts.failed_indicator, HIGH);
+		}
+	}
+}
+
+void InputsOutputs::animate_engaged() {
+	if (this->last_animate_time == 0) {
+		digitalWrite(pinouts.ready_indicator, LOW);
+		digitalWrite(pinouts.authed_indicator, HIGH);
+		digitalWrite(pinouts.failed_indicator, LOW);
+		digitalWrite(pinouts.action_indicator, HIGH);
+		digitalWrite(pinouts.steal_indicator, LOW);
+		//digitalWrite(pinouts.noise_indicator, LOW);
+		digitalWrite(pinouts.beer_solenoid, HIGH);
+	}
+	else {
+	}
+}
+
+void InputsOutputs::animate_patience() {
+	if (this->last_animate_time == 0) {
+	}
+	else {
+	}
+}
+
+void InputsOutputs::animate_pouring() {
+	if (this->last_animate_time == 0) {
+		digitalWrite(pinouts.ready_indicator, LOW);
+		digitalWrite(pinouts.authed_indicator, HIGH);
+		digitalWrite(pinouts.failed_indicator, LOW);
+		digitalWrite(pinouts.action_indicator, HIGH);
+		digitalWrite(pinouts.steal_indicator, LOW);
+		//digitalWrite(pinouts.noise_indicator, LOW);
+		digitalWrite(pinouts.beer_solenoid, LOW);
+	}
+	else {
+	}
+}
+
+void InputsOutputs::animate_gulping() {
+	if (this->last_animate_time == 0) {
+		digitalWrite(pinouts.beer_solenoid, HIGH);
+	}
+	else {
+	}
+}
+
+void InputsOutputs::animate_degaging() {
+	if (this->last_animate_time == 0) {
+	}
+	else {
+	}
+}
+
+void InputsOutputs::animate_eightsix() {
+	if (this->last_animate_time == 0) {
+		digitalWrite(pinouts.ready_indicator, LOW);
+		digitalWrite(pinouts.authed_indicator, LOW);
+		digitalWrite(pinouts.failed_indicator, HIGH);
+		digitalWrite(pinouts.action_indicator, LOW);
+		digitalWrite(pinouts.steal_indicator, LOW);
+		//digitalWrite(pinouts.noise_indicator, LOW);
+		digitalWrite(pinouts.beer_solenoid, HIGH);
+	}
+	else {
+	}
+}
+
+void InputsOutputs::animate_stealing() {
+	if (this->last_animate_time == 0) {
+	}
+	else {
+	}
+}
+
+void InputsOutputs::animate_stolen() {
+	if (this->last_animate_time == 0) {
+		digitalWrite(pinouts.ready_indicator, LOW);
+		digitalWrite(pinouts.authed_indicator, HIGH);
+		digitalWrite(pinouts.failed_indicator, LOW);
+		digitalWrite(pinouts.action_indicator, LOW);
+		digitalWrite(pinouts.steal_indicator, HIGH);
+		//digitalWrite(pinouts.noise_indicator, HIGH);
+		digitalWrite(pinouts.beer_solenoid, LOW);
+	}
+	else {
+	}
+}
+
+void InputsOutputs::animate_skulking() {
+	if (this->last_animate_time == 0) {
+	}
+	else {
 	}
 }
 

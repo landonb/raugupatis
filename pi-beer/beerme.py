@@ -4,7 +4,7 @@
 """
 # File: beerme.py
 # Author: Landon Bouma
-# Last Modified: 2016.11.08
+# Last Modified: 2016.11.09
 # Project Page: https://github.com/landonb/raugupatis
 # License: GPLv3
 
@@ -397,6 +397,9 @@ class Pibeer(object):
 # FIXME/2016-11-04: The Arduino is not detected the 'ok' response correctly.
         resp = 'ok' if authenticated else 'no'
         trace("handle_cmd_authenticate: token: %s / resp: %s" % (token, resp,))
+
+# 2016-11-09: TEST: I think I was missing the newline!
+        resp += '\n'
 
         self.serial.write(resp.encode('utf-8'))
 #        self.serial.write(resp)

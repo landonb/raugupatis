@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.08
+// Last Modified: 2016.11.09
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -129,15 +129,26 @@ public:
 	uint8_t check_steal_button(void);
 	void transition(HellaState new_state);
 
+	// State animations.
 	unsigned long last_animate_time = 0;
-	void (*animator)(unsigned long, unsigned long, unsigned long);
+	unsigned long curr_time;
+	unsigned long state_time_0;
+	unsigned long last_animate_time;
+	unsigned long state_elapsed;
+	void (*animator)();
 	void animate(HellaState new_state, unsigned long state_time_0);
-	static void animate_annoyed(
-		unsigned long curr_time,
-		unsigned long state_time_0,
-		unsigned long last_animate_time
-	);
-
+	static void animate_bored();
+	static void animate_buzz_off();
+	static void animate_engaging();
+	static void animate_engaged();
+	static void animate_patience();
+	static void animate_pouring();
+	static void animate_gulping();
+	static void animate_degaging();
+	static void animate_eightsix();
+	static void animate_stealing();
+	static void animate_stolen();
+	static void animate_skulking();
 };
 
 #endif // __PINS_H__
