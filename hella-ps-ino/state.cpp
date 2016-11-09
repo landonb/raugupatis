@@ -160,6 +160,7 @@ void StateMachine::check_beerme_state(void) {
 			else {
 				// !lastest_beerme, so user disengaging.
 				if (this->state == STATE_POURING) {
+					this->comm->trace_P0(PSTR("check_beerme_state: STATE_GULPING"));
 					this->transition(STATE_GULPING);
 				}
 				else {
@@ -274,6 +275,7 @@ void StateMachine::check_timers_state(void) {
 			// The engaged state. User can enabled beer with Green button.
 			// If user doesn't do anything, we timeout.
 			if (state_uptime >= timeouts.engaged_degaging) {
+				this->comm->trace_P0(PSTR("check_timers_state/STATE_ENGAGED: STATE_DEGAGING"));
 				this->transition(STATE_DEGAGING);
 			}
 			// else, less time than the timeout, stay engaged.
@@ -284,6 +286,7 @@ void StateMachine::check_timers_state(void) {
 		// See below: STATE_POURING
 		case STATE_GULPING:
 			if (state_uptime >= timeouts.gulping) {
+				this->comm->trace_P0(PSTR("check_timers_state/STATE_GULPING: STATE_DEGAGING"));
 				this->transition(STATE_DEGAGING);
 			}
 			break;
@@ -369,11 +372,13 @@ void StateMachine::check_timers_pouring_or_stolen(unsigned long state_uptime) {
 			// Gulping immediately closes the solenoid. We'll see
 			// how popular this is, especially if flowmeter isn't
 			// connected!
+			this->comm->trace_P0(PSTR("check_timers_pouring_or_stolen: STATE_GULPING"));
 			this->transition(STATE_GULPING);
 		}
 		else if (void_time_elapsed > timeouts.wait_pouring) {
 			// We could make a new state for this, but Degaging lets
 			// user recover and does animation.
+			this->comm->trace_P0(PSTR("check_timers_pouring_or_stolen: STATE_DEGAGING"));
 			this->transition(STATE_DEGAGING);
 		}
 	}
