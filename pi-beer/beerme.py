@@ -277,9 +277,8 @@ class Pibeer(object):
                 try:
                     char = next_ch_.decode('utf-8')
                 except Exception as err:
-#
-                    import pdb;pdb.set_trace()
-                    pass
+                    # Not valid utf-8 character.
+                    char = 0
                 if char == '\r':
                     # Skip carriage return.
                     continue
