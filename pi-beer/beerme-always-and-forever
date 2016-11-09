@@ -37,7 +37,7 @@ DIR=/home/pi/raugupatis/pi-beer
 DAEMON=$DIR/beerme.py
 DAEMON_NAME=beerme.py
 
-DAEMON_OPTS="--host \"${SPHINX_URL}\""
+DAEMON_OPTS="--host ${SPHINX_URL}"
 
 DAEMON_USER=pi
 
