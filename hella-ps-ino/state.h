@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.08
+// Last Modified: 2016.11.09
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -26,6 +26,9 @@ const struct PROGMEM {
 	//const int pouring_idle = 7654;
 	const int pouring_idle = 27654;
 
+	const int wait_patience = 2345;
+	const int wait_eightysix = 5345;
+
 	// How often to send flow reports to the Pi.
 	const int flow_updates = 200;
 
@@ -49,6 +52,7 @@ enum HellaState {
 	STATE_ENGAGED, // 4
 	// I guess we can't just open the solenoid on Green button press,
 	// but instead we must entertain first.
+// FIXME: STATE_PATIENCE IS NOT IMPLEMENTED.
 	STATE_PATIENCE, // 5
 	// Galvanize! Push the button, bruh.
 	// Open/close the solenoid, and send flow #s to the Pi.

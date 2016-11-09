@@ -149,6 +149,7 @@ void StateMachine::check_beerme_state(void) {
 					|| (this->state == STATE_ENGAGED)
 					|| (this->state == STATE_DEGAGING)
 				) {
+					// FIXME/MAYBE: Transition to STATE_PATIENCE and do song/dance.
 					this->transition(STATE_POURING);
 				}
 				else {
@@ -260,6 +261,7 @@ void StateMachine::check_timers_state(void) {
 		case STATE_BUZZ_OFF:
 			// An animation state. Resume being bored when finished animating.
 			if (state_uptime >= timeouts.buzzing_off) {
+				this->comm->trace_P0(PSTR("check_timers_state/STATE_BUZZ_OFF: STATE_BORED"));
 				this->transition(STATE_BORED);
 			}
 			// else, this->pins->animate will handle the lights for this state.
@@ -267,6 +269,7 @@ void StateMachine::check_timers_state(void) {
 		case STATE_ENGAGING:
 			// An animation state. Become engaged when finished animating.
 			if (state_uptime >= timeouts.engaging) {
+				this->comm->trace_P0(PSTR("check_timers_state/STATE_ENGAGING: STATE_ENGAGED"));
 				this->transition(STATE_ENGAGED);
 			}
 			// else, this->pins->animate will handle the lights for this state.
@@ -281,7 +284,10 @@ void StateMachine::check_timers_state(void) {
 			// else, less time than the timeout, stay engaged.
 			break;
 		case STATE_PATIENCE:
-			// No-op.
+			if (state_uptime >= timeouts.wait_patience) {
+				this->comm->trace_P0(PSTR("check_timers_state/STATE_PATIENCE: STATE_POURING"));
+				this->transition(STATE_POURING);
+			}
 			break;
 		// See below: STATE_POURING
 		case STATE_GULPING:
@@ -294,20 +300,22 @@ void StateMachine::check_timers_state(void) {
 			// An animation state. Go bored when finished animating. However,
 			// unlike other animation states, user can recover from this one.
 			if (state_uptime >= timeouts.degaging) {
+				this->comm->trace_P0(PSTR("check_timers_state/STATE_DEGAGING: STATE_BORED"));
 				this->transition(STATE_BORED);
 			}
 			// else, this->pins->animate will handle the lights for this state.
 			break;
 		case STATE_EIGHTYSIX:
-			// No-op.
+			// An animation state. Become bored when finished eightysixxing.
+			if (state_uptime >= timeouts.wait_eightysix) {
+				this->comm->trace_P0(PSTR("check_timers_state/STATE_EIGHTYSIX: STATE_BORED"));
+				this->transition(STATE_BORED);
+			}
 			break;
 		case STATE_STEALING:
-			// Unreachable/already handled.
-			//contract(false, __FILE__, __LINE__);
-			contract(false, 123, __LINE__);
-			break;
 			// An animation state. Become stolen when finished animating.
 			if (state_uptime >= timeouts.stealing) {
+				this->comm->trace_P0(PSTR("check_timers_state/STATE_STEALING: STATE_STOLEN"));
 				this->transition(STATE_STOLEN);
 			}
 			// else, this->pins->animate will handle the lights for this state.
@@ -316,6 +324,7 @@ void StateMachine::check_timers_state(void) {
 		case STATE_SKULKING:
 			// An animation state. Become bored once done skulking.
 			if (state_uptime >= timeouts.skulking) {
+				this->comm->trace_P0(PSTR("check_timers_state/STATE_SKULKING: STATE_BORED"));
 				this->transition(STATE_BORED);
 			}
 			// else, this->pins->animate will handle the lights for this state.
@@ -442,9 +451,9 @@ void StateMachine::adjust_beerme_state(HellaState new_state) {
 		|| (new_state == STATE_POURING)
 		|| (new_state == STATE_STOLEN)
 	) {
-		//if (!this->beerme_state) {
+		if (!this->beerme_state) {
 			this->comm->trace_P0(PSTR("StateMachine::adjust_beerme_state: setting true"));
-		//}
+		}
 		this->beerme_state = true;
 	}
 	else {

@@ -66,7 +66,23 @@ struct {
 	// punished by loud noises and flashing lights.
 	// - We're using the Red button for this.
 	// NOTE: We'll need to poll this button since we're out of interrupt pins.
-	const int steal_button = 13;
+	//
+	// Oops! Can't use Pin 13. From:
+	//   https://www.arduino.cc/en/Tutorial/DigitalPins
+	// "NOTE: Digital pin 13 is harder to use as a digital input than the
+	// other digital pins because it has an LED and resistor attached to it that's
+	// soldered to the board on most boards. If you enable its internal 20k pull-up
+	// resistor, it will hang at around 1.7V instead of the expected 5V because
+	// the onboard LED and series resistor pull the voltage level down, meaning
+	// it always returns LOW. If you must use pin 13 as a digital input, set its
+	// pinMode() to INPUT and use an external pull down resistor."
+	//const int steal_button = 13;
+	// This is Analog A0.
+	// Even analog read is around 600, 700, 800 and doesn't change when
+	// button pressed or released.
+	//const int steal_button = A0;
+	//const int steal_button = 3;
+	const int steal_button = 4;
 
 	// The buttons are also illuminable.
 	const int action_indicator = 6; // The Green button's light.
@@ -163,6 +179,8 @@ public:
 	void animate_stealing();
 	void animate_stolen();
 	void animate_skulking();
+
+	unsigned long beerme_events_last = -1;
 };
 
 #endif // __PINS_H__

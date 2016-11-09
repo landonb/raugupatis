@@ -89,11 +89,12 @@ void InputsOutputs::hook_flowmeter(void) {
 	);
 }
 
-// FIXME: INPUT, or INPUT_PULLUP?
-// 2016-11-03: This button has not been tested yet.
-//pinMode(pinouts.steal_button, INPUT);
 void InputsOutputs::hook_steal_button(void) {
-	pinMode(pinouts.steal_button, INPUT_PULLUP);
+	// FIXME/2016-11-09: I tried INPUT and INPUT_PULLUP but button always reads 0! (Pin 13)
+	//                   Switched to Pin A0 and now it always reads HIGH.
+	// On pin 4, when INPUT_PULLUP, readDigital always 1; when INPUT, always 0.
+	//pinMode(pinouts.steal_button, INPUT_PULLUP);
+	pinMode(pinouts.steal_button, INPUT);
 }
 
 void InputsOutputs::hook_indicator_lights(void) {
@@ -124,8 +125,10 @@ void InputsOutputs::hook_test_indicator(void) {
 // Runtime routines.
 
 bool InputsOutputs::get_beerme_state(void) {
-	if (beerme_state_) {
+	//if (beerme_state_) {
+	if (beerme_events > this->beerme_events_last) {
 		this->comm->trace_P(PSTR("get_beerme_state: beerme_events: %lu"), beerme_events);
+		this->beerme_events_last = beerme_events;
 	}
 	return beerme_state_;
 }
@@ -150,7 +153,13 @@ unsigned long InputsOutputs::get_flowmeter_count(void) {
 }
 
 uint8_t InputsOutputs::check_steal_button(void) {
+	// FIXME: This always returns 0, even with button pressed!
 	uint8_t high_or_low = digitalRead(pinouts.steal_button);
+	//int high_or_low = analogRead(pinouts.steal_button);
+	// 2016-11-09: Work-around. I hot-wired the pin.
+	//if (high_or_low != 0) {
+	//	this->comm->trace_P(PSTR("check_steal_button: high_or_low: %d"), high_or_low);
+	//}
 	return high_or_low;
 }
 
@@ -450,6 +459,17 @@ void InputsOutputs::animate_stealing() {
 	if (this->last_animate_time == 0) {
 	}
 	else {
+		unsigned long hundreth_millis = this->state_elapsed / 100;
+		if ((hundreth_millis % 2) == 0) {
+			digitalWrite(pinouts.authed_indicator, HIGH);
+			digitalWrite(pinouts.ready_indicator, LOW);
+			digitalWrite(pinouts.failed_indicator, HIGH);
+		}
+		else {
+			digitalWrite(pinouts.authed_indicator, LOW);
+			digitalWrite(pinouts.ready_indicator, HIGH);
+			digitalWrite(pinouts.failed_indicator, LOW);
+		}
 	}
 }
 
