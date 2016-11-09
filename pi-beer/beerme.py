@@ -256,7 +256,11 @@ class Pibeer(object):
             #trace("Calling self.serial.read...")
             next_ch_ = self.serial.read(1)
             if len(next_ch_):
-                next_ch = next_ch_.decode('utf-8')
+                try:
+                    next_ch = next_ch_.decode('utf-8')
+                except Exception as err:
+                    # Not valid utf-8 character.
+                    next_ch = 0
                 trace("clear_serial: discard char: %s" % (next_ch_,))
                 if next_ch == '\n':
                     # Let's give up here?
