@@ -262,9 +262,9 @@ class Pibeer(object):
                     # Not valid utf-8 character.
                     next_ch = 0
                 trace("clear_serial: discard char: %s" % (next_ch_,))
-                if next_ch == '\n':
-                    # Let's give up here?
-                    break
+                #if next_ch == '\n':
+                #    # Let's give up here?
+                #    break
             else:
                 # Nothing returned, assume buffer is empty.
                 trace("clear_serial: all clear")
