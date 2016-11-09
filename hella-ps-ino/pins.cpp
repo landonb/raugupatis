@@ -120,8 +120,9 @@ void InputsOutputs::hook_test_indicator(void) {
 
 bool InputsOutputs::get_beerme_state(void) {
 	if (beerme_state_) {
-		this->comm->upstream->print("get_beerme_state: beerme_events: ");
-		this->comm->upstream->println(beerme_events);
+		//this->comm->upstream->print("get_beerme_state: beerme_events: ");
+		//this->comm->upstream->println(beerme_events);
+		this->comm->trace_P("get_beerme_state: beerme_events: %lu", beerme_events);
 	}
 	return beerme_state_;
 }

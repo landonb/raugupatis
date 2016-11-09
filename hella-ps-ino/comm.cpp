@@ -160,21 +160,23 @@ bool CommUpstream::authenticate(uint8_t ibutton_addr[8]) {
 	// calling this fcn. reboots the microcontroller -- and not even the
 	// write_P0s above get called.
 	//   bool received = this->get_msg(response, comm_len);
+	Serial.setTimeout(5000);
 	bool received = this->get_msg(&response[0], comm_len);
+	// The normal timeout is 1000.
+	Serial.setTimeout(1000);
 
 	if (received) {
-		this->trace_P0(PSTR("authenticate: response received"));
 		if (response[0] == '\0') {
 			// FIXME: Timeout?
 			this->trace_P0(PSTR("authenticate: WARNING: timeout/No response"));
 		}
 		// NOTE: If you use strcmp(), even if this code is not executed,
 		//       it seems to cause this function to hang.
-		else if (strcmp_P(response, PSTR("ok"))) {
+		else if (strcmp_P(response, PSTR("ok")) == 0) {
 			this->trace_P0(PSTR("authenticate: okay"));
 			authenticated = true;
 		}
-		else if (strcmp_P(response, PSTR("no"))) {
+		else if (strcmp_P(response, PSTR("no")) == 0) {
 			this->trace_P0(PSTR("authenticate: nope"));
 		}
 		else {
@@ -237,18 +239,28 @@ void CommUpstream::put_msg(const char *msg) {
 }
 
 bool CommUpstream::get_msg(char *msg, size_t nbytes) {
+
 	bool msg_received = false;
 	msg[0] = '\0';
 
 	if (!DEBUG) {
 		size_t bytes_read = this->upstream->readBytesUntil('\n', msg, nbytes);
+		if (bytes_read < nbytes) {
+			msg[bytes_read] = '\0';
+		}
+		else if (nbytes > 0) {
+			size_t last_byte = nbytes - 1;
+			msg[last_byte] = '\0';
+		}
+
 		// NOTE: Don't care about bytes_read, except maybe if == nbytes.
 		if (bytes_read > 0) {
 			msg_received = true;
 			if (bytes_read == nbytes) {
-				this->trace_P(PSTR("get_msg: WARNING: read max nbytes: %lu"),  nbytes);
+				this->trace_P(PSTR("get_msg: WARNING: read max nbytes: %lu"), nbytes);
 			}
 			this->trim_msg(msg, bytes_read);
+			this->trace_P(PSTR("get_msg: got msg: %s"), msg);
 		}
 	}
 	else {
@@ -263,7 +275,7 @@ void CommUpstream::trim_msg(char *msg, size_t nbytes) {
 	// [lb] not sure we should use strlen() in case there is not null byte.
 	int msg_len = 0;
 	while (msg_len < nbytes) {
-		if (msg[msg_len] == '\0') {
+		if (msg[msg_len++] == '\0') {
 			break;
 		}
 		// else, keep looking.

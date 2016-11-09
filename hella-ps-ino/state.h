@@ -12,11 +12,11 @@
 const struct PROGMEM {
 
 	const int engaging = 666;
-	const int engaged_degaging = 5000;
+	const int engaged_degaging = 12109;
 
 	const int buzzing_off = 7654;
 
-	const int degaging = 3210;
+	const int degaging = 12345;
 
 	const int stealing = 4000;
 	const int skulking = 3000;

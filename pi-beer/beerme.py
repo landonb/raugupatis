@@ -442,7 +442,8 @@ class Pibeer(object):
             elif msg:
                 trace("INO says: %s" % (msg,))
             else:
-                raise BeermeSerialException("WARNING: handle_cmd_trace: No msg found")
+                #raise BeermeSerialException("WARNING: handle_cmd_trace: No msg found")
+                trace("NOTICE: INO says: NOTHING")
 
 # ***
 
