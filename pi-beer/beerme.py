@@ -279,13 +279,14 @@ class Pibeer(object):
                 except Exception as err:
                     # Not valid utf-8 character.
                     char = 0
-                if char == '\r':
-                    # Skip carriage return.
-                    continue
-                if char == '\n':
-                    # All done.
-                    break
-                line += char
+                else:
+                    if char == '\r':
+                        # Skip carriage return.
+                        continue
+                    if char == '\n':
+                        # All done.
+                        break
+                    line += char
             else:
                 # Timeout.
                 if line:
