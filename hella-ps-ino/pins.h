@@ -131,12 +131,12 @@ public:
 
 	// State animations.
 	unsigned long last_animate_time = 0;
-	unsigned long curr_time;
-	unsigned long state_time_0;
-	unsigned long last_animate_time;
-	unsigned long state_elapsed;
-	void (*animator)();
+	unsigned long curr_time = 0;
+	unsigned long state_time_0 = 0;
+	unsigned long state_elapsed = 0;
+	void (InputsOutputs::*animator)();
 	void animate(HellaState new_state, unsigned long state_time_0);
+/*
 	static void animate_bored();
 	static void animate_buzz_off();
 	static void animate_engaging();
@@ -149,6 +149,19 @@ public:
 	static void animate_stealing();
 	static void animate_stolen();
 	static void animate_skulking();
+*/
+	void animate_bored();
+	void animate_buzz_off();
+	void animate_engaging();
+	void animate_engaged();
+	void animate_patience();
+	void animate_pouring();
+	void animate_gulping();
+	void animate_degaging();
+	void animate_eightsix();
+	void animate_stealing();
+	void animate_stolen();
+	void animate_skulking();
 };
 
 #endif // __PINS_H__

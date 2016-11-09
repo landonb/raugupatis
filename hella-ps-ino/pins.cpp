@@ -158,52 +158,52 @@ void InputsOutputs::transition(HellaState new_state) {
 			//contract(false, __FILE__, __LINE__);
 			contract(false, 345, __LINE__);
 		case STATE_BORED:
-			this->animator = this->animate_bored;
+			this->animator = &(this->animate_bored);
 			break;
 		case STATE_BUZZ_OFF:
-			this->animator = this->animate_buzz_off;
+			this->animator = &(this->animate_buzz_off);
 			// We fiddle with the Green Button light,
 			// which (unexpectedly?) triggers the ISR.
 			beerme_ignore = true;
 			break;
 		case STATE_ENGAGING:
-			this->animator = this->animate_engaging;
+			this->animator = &(this->animate_engaging);
 			beerme_ignore = true;
 			break;
 		case STATE_ENGAGED:
-			this->animator = this->animate_engaged;
+			this->animator = &(this->animate_engaged);
 			beerme_ignore = false;
 			break;
 		case STATE_PATIENCE:
-			this->animator = this->animate_patience;
+			this->animator = &(this->animate_patience);
 			beerme_ignore = true;
 			break;
 		case STATE_POURING:
-			this->animator = this->animate_pouring;
+			this->animator = &(this->animate_pouring);
 			beerme_ignore = false;
 			break;
 		case STATE_GULPING:
-			this->animator = this->animate_gulping;
+			this->animator = &(this->animate_gulping);
 			beerme_ignore = false;
 			break;
 		case STATE_DEGAGING:
-			this->animator = this->animate_degaging;
+			this->animator = &(this->animate_degaging);
 			beerme_ignore = false;
 			break;
 		case STATE_EIGHTYSIX:
-			this->animator = this->animate_eightsix;
+			this->animator = &(this->animate_eightsix);
 			beerme_ignore = true;
 			break;
 		case STATE_STEALING:
-			this->animator = this->animate_stealing;
+			this->animator = &(this->animate_stealing);
 			beerme_ignore = true;
 			break;
 		case STATE_STOLEN:
-			this->animator = this->animate_stolen;
+			this->animator = &(this->animate_stolen);
 			beerme_ignore = false;
 			break;
 		case STATE_SKULKING:
-			this->animator = this->animate_skulking;
+			this->animator = &(this->animate_skulking);
 			beerme_ignore = true;
 			break;
 		default:
@@ -223,7 +223,17 @@ void InputsOutputs::animate(HellaState new_state, unsigned long state_time_0) {
 	if (this->animator != NULL) {
 		this->curr_time = millis();
 		this->state_elapsed = this->curr_time - state_time_0;
-		this->animator();
+		// If animator was static member function reference:
+		//   this->animator();
+		// But when class member function:
+		//      error: must use '.*' or '->*' to call pointer-to-member function in
+		//      '((InputsOutputs*)this)->InputsOutputs::animator (...)', e.g.
+		//      '(... ->* ((InputsOutputs*)this)->InputsOutputs::animator) (...)'
+		// Both of these compile:
+		//      (this->*((InputsOutputs*)this)->InputsOutputs::animator)();
+		//  or
+		//      (*this.*animator)();
+		(*this.*animator)();
 		this->last_animate_time = this->curr_time;
 	}
 }
@@ -262,7 +272,7 @@ void InputsOutputs::animate_bored() {
 	}
 }
 
-void InputsOutputs::animate_buzz_off(
+void InputsOutputs::animate_buzz_off() {
 	if (this->last_animate_time == 0) {
 		digitalWrite(pinouts.ready_indicator, LOW);
 		digitalWrite(pinouts.authed_indicator, LOW);
@@ -319,7 +329,7 @@ void InputsOutputs::animate_engaging() {
 	}
 	else {
 		unsigned long hundreth_millis = this->state_elapsed / 100;
-		if ((twentieth_millis % 2) == 0) {
+		if ((hundreth_millis % 2) == 0) {
 			digitalWrite(pinouts.failed_indicator, LOW);
 		}
 		else {
@@ -382,7 +392,7 @@ void InputsOutputs::animate_degaging() {
 	}
 	else {
 		unsigned long hundreth_millis = this->state_elapsed / 100;
-		if ((twentieth_millis % 2) == 0) {
+		if ((hundreth_millis % 2) == 0) {
 			digitalWrite(pinouts.authed_indicator, LOW);
 			digitalWrite(pinouts.failed_indicator, HIGH);
 		}
