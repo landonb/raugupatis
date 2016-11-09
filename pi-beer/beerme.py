@@ -262,9 +262,13 @@ class Pibeer(object):
                     # Not valid utf-8 character.
                     next_ch = 0
                 trace("clear_serial: discard char: %s" % (next_ch_,))
-                #if next_ch == '\n':
-                #    # Let's give up here?
-                #    break
+
+# FIXME: Need to figure this out!
+#        If Arduino keeps talking, we keep clearing!!!
+                if next_ch == '\n':
+                    # Let's give up here?
+                    trace("clear_serial: found newline")
+                    break
             else:
                 # Nothing returned, assume buffer is empty.
                 trace("clear_serial: all clear")

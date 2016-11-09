@@ -23,7 +23,8 @@ const struct PROGMEM {
 	const int skulking = 3000;
 
 	const int wait_pouring = 22121;
-	const int pouring_idle = 7654;
+	//const int pouring_idle = 7654;
+	const int pouring_idle = 27654;
 
 	// How often to send flow reports to the Pi.
 	const int flow_updates = 200;
