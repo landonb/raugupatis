@@ -283,7 +283,9 @@ void StateMachine::check_timers_state(void) {
 			break;
 		// See below: STATE_POURING
 		case STATE_GULPING:
-			// No-op.
+			if (state_uptime >= timeouts.gulping) {
+				this->transition(STATE_DEGAGING);
+			}
 			break;
 		case STATE_DEGAGING:
 			// An animation state. Go bored when finished animating. However,

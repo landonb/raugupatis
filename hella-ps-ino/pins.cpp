@@ -193,6 +193,7 @@ void InputsOutputs::transition(HellaState new_state) {
 			test_indicator_duty_cycle = 75;
 			break;
 		case STATE_GULPING:
+			digitalWrite(pinouts.beer_solenoid, HIGH);
 			break;
 		case STATE_DEGAGING:
 			break;

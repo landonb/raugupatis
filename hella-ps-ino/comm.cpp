@@ -210,6 +210,9 @@ void CommUpstream::update_flow(
 	unsigned long elapsed_blip,
 	unsigned long elapsed_time
 ) {
+// FIXME/2016-11-08: Issues with this fcn.
+return;
+
 	//this->trace(PSTR("authenticate: updating flow: %s"), state_name);
 
 	// Start of message.
