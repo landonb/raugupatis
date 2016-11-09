@@ -125,6 +125,7 @@ public:
 	// Runtime routines.
 	bool get_beerme_state(void);
 	void set_beerme_state(bool new_state);
+	void set_beerme_ignore(bool ignore);
 	unsigned long get_flowmeter_count(void);
 	uint8_t check_steal_button(void);
 	void transition(HellaState new_state);

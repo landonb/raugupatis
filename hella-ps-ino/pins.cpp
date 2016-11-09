@@ -16,6 +16,8 @@
 volatile bool beerme_state_ = false;
 volatile unsigned long beerme_events = 0;
 volatile bool beerme_ignore = false;
+// Well, I'll be. Fiddling pinouts.ready_indicator LOW/HIGH triggers ISR!
+volatile bool beerme_ignore_next = true;
 
 volatile unsigned long flowmeter_count_ = 0;
 
@@ -38,8 +40,12 @@ void InputsOutputs::setup(Helladuino *hellaps) {
 void InputsOutputs::on_action_button_isr(void) {
 	// When animating...
 	if (!beerme_ignore) {
-		beerme_state_ = !beerme_state_;
+		// 2016-11-09: HUH?: Getting rando ISR on boot?
+		if (!beerme_ignore_next) {
+			beerme_state_ = !beerme_state_;
+		}
 		beerme_events += 1;
+		beerme_ignore_next = false;
 	}
 }
 
@@ -94,7 +100,6 @@ void InputsOutputs::hook_indicator_lights(void) {
 	pinMode(pinouts.ready_indicator, OUTPUT);
 	pinMode(pinouts.authed_indicator, OUTPUT);
 	pinMode(pinouts.failed_indicator, OUTPUT);
-
 	pinMode(pinouts.action_indicator, OUTPUT);
 	pinMode(pinouts.steal_indicator, OUTPUT);
 	//pinMode(pinouts.noise_indicator, OUTPUT);
@@ -120,15 +125,24 @@ void InputsOutputs::hook_test_indicator(void) {
 
 bool InputsOutputs::get_beerme_state(void) {
 	if (beerme_state_) {
-		//this->comm->upstream->print("get_beerme_state: beerme_events: ");
-		//this->comm->upstream->println(beerme_events);
-		this->comm->trace_P("get_beerme_state: beerme_events: %lu", beerme_events);
+		this->comm->trace_P(PSTR("get_beerme_state: beerme_events: %lu"), beerme_events);
 	}
 	return beerme_state_;
 }
 
 void InputsOutputs::set_beerme_state(bool new_state) {
 	beerme_state_ = new_state;
+}
+
+void InputsOutputs::set_beerme_ignore(bool ignore) {
+	if (ignore) {
+		beerme_state_ = false;
+		this->comm->trace_P0(PSTR("set_beerme_ignore: ignore: true"));
+	}
+	else {
+		this->comm->trace_P0(PSTR("set_beerme_ignore: ignore: false"));
+	}
+	beerme_ignore = ignore;
 }
 
 unsigned long InputsOutputs::get_flowmeter_count(void) {
@@ -141,7 +155,7 @@ uint8_t InputsOutputs::check_steal_button(void) {
 }
 
 void InputsOutputs::transition(HellaState new_state) {
-	beerme_ignore = false;
+	bool beerme_ignore_ = false;
 	this->animator = NULL;
 	this->last_animate_time = 0;
 	this->curr_time = 0;
@@ -164,52 +178,54 @@ void InputsOutputs::transition(HellaState new_state) {
 			this->animator = &(this->animate_buzz_off);
 			// We fiddle with the Green Button light,
 			// which (unexpectedly?) triggers the ISR.
-			beerme_ignore = true;
+			beerme_ignore_ = true;
 			break;
 		case STATE_ENGAGING:
 			this->animator = &(this->animate_engaging);
-			beerme_ignore = true;
+			beerme_ignore_ = true;
 			break;
 		case STATE_ENGAGED:
 			this->animator = &(this->animate_engaged);
-			beerme_ignore = false;
+			beerme_ignore_ = false;
 			break;
 		case STATE_PATIENCE:
 			this->animator = &(this->animate_patience);
-			beerme_ignore = true;
+			beerme_ignore_ = true;
 			break;
 		case STATE_POURING:
 			this->animator = &(this->animate_pouring);
-			beerme_ignore = false;
+			beerme_ignore_ = false;
 			break;
 		case STATE_GULPING:
 			this->animator = &(this->animate_gulping);
-			beerme_ignore = false;
+			beerme_ignore_ = false;
 			break;
 		case STATE_DEGAGING:
 			this->animator = &(this->animate_degaging);
-			beerme_ignore = false;
+			beerme_ignore_ = false;
 			break;
 		case STATE_EIGHTYSIX:
 			this->animator = &(this->animate_eightsix);
-			beerme_ignore = true;
+			beerme_ignore_ = true;
 			break;
 		case STATE_STEALING:
 			this->animator = &(this->animate_stealing);
-			beerme_ignore = true;
+			beerme_ignore_ = true;
 			break;
 		case STATE_STOLEN:
 			this->animator = &(this->animate_stolen);
-			beerme_ignore = false;
+			beerme_ignore_ = false;
 			break;
 		case STATE_SKULKING:
 			this->animator = &(this->animate_skulking);
-			beerme_ignore = true;
+			beerme_ignore_ = true;
 			break;
 		default:
 			// Unreachable.
 			break;
 	}
+
+	this->set_beerme_ignore(beerme_ignore_);
 
 	// 2016-11-09: The LED was just for testing.
 	//int test_indicator_duty_cycle = 15;
@@ -239,6 +255,7 @@ void InputsOutputs::animate(HellaState new_state, unsigned long state_time_0) {
 }
 
 void InputsOutputs::animate_bored() {
+	//this->comm->write_P0(PSTR("animate_bored"));
 	if (this->last_animate_time == 0) {
 		digitalWrite(pinouts.ready_indicator, HIGH);
 		digitalWrite(pinouts.authed_indicator, LOW);
@@ -255,11 +272,13 @@ void InputsOutputs::animate_bored() {
 			this->state_elapsed - ((this->state_elapsed / 1000) * 1000)
 		;
 		if (millis_after_sec < 200) {
-			unsigned long tenth_millis = this->state_elapsed / 10;
-			if ((tenth_millis % 2) == 0) {
+			//unsigned long tenth_millis = this->state_elapsed / 10;
+			unsigned long twentieth_millis = this->state_elapsed / 20;
+			if ((twentieth_millis % 2) == 0) {
 				digitalWrite(pinouts.ready_indicator, LOW);
 			}
 			else {
+				beerme_ignore_next = true;
 				digitalWrite(pinouts.ready_indicator, HIGH);
 			}
 		}
@@ -267,12 +286,14 @@ void InputsOutputs::animate_bored() {
 			digitalWrite(pinouts.ready_indicator, LOW);
 		}
 		else {
+			beerme_ignore_next = true;
 			digitalWrite(pinouts.ready_indicator, HIGH);
 		}
 	}
 }
 
 void InputsOutputs::animate_buzz_off() {
+	//this->comm->write_P0(PSTR("animate_buzz_off"));
 	if (this->last_animate_time == 0) {
 		digitalWrite(pinouts.ready_indicator, LOW);
 		digitalWrite(pinouts.authed_indicator, LOW);
@@ -318,6 +339,7 @@ void InputsOutputs::animate_buzz_off() {
 }
 
 void InputsOutputs::animate_engaging() {
+	//this->comm->write_P0(PSTR("animate_engaging"));
 	if (this->last_animate_time == 0) {
 		digitalWrite(pinouts.ready_indicator, HIGH);
 		digitalWrite(pinouts.authed_indicator, LOW);
@@ -339,6 +361,7 @@ void InputsOutputs::animate_engaging() {
 }
 
 void InputsOutputs::animate_engaged() {
+	//this->comm->write_P0(PSTR("animate_engaged"));
 	if (this->last_animate_time == 0) {
 		digitalWrite(pinouts.ready_indicator, LOW);
 		digitalWrite(pinouts.authed_indicator, HIGH);
@@ -353,6 +376,7 @@ void InputsOutputs::animate_engaged() {
 }
 
 void InputsOutputs::animate_patience() {
+	//this->comm->write_P0(PSTR("animate_patience"));
 	if (this->last_animate_time == 0) {
 	}
 	else {
@@ -360,6 +384,7 @@ void InputsOutputs::animate_patience() {
 }
 
 void InputsOutputs::animate_pouring() {
+	//this->comm->write_P0(PSTR("animate_pouring"));
 	if (this->last_animate_time == 0) {
 		digitalWrite(pinouts.ready_indicator, LOW);
 		digitalWrite(pinouts.authed_indicator, HIGH);
@@ -374,6 +399,7 @@ void InputsOutputs::animate_pouring() {
 }
 
 void InputsOutputs::animate_gulping() {
+	//this->comm->write_P0(PSTR("animate_gulping"));
 	if (this->last_animate_time == 0) {
 		digitalWrite(pinouts.ready_indicator, LOW);
 		digitalWrite(pinouts.authed_indicator, LOW);
@@ -388,6 +414,7 @@ void InputsOutputs::animate_gulping() {
 }
 
 void InputsOutputs::animate_degaging() {
+	//this->comm->write_P0(PSTR("animate_degaging"));
 	if (this->last_animate_time == 0) {
 	}
 	else {
@@ -404,6 +431,7 @@ void InputsOutputs::animate_degaging() {
 }
 
 void InputsOutputs::animate_eightsix() {
+	//this->comm->write_P0(PSTR("animate_eightsix"));
 	if (this->last_animate_time == 0) {
 		digitalWrite(pinouts.ready_indicator, LOW);
 		digitalWrite(pinouts.authed_indicator, LOW);
@@ -418,6 +446,7 @@ void InputsOutputs::animate_eightsix() {
 }
 
 void InputsOutputs::animate_stealing() {
+	//this->comm->write_P0(PSTR("animate_stealing"));
 	if (this->last_animate_time == 0) {
 	}
 	else {
@@ -425,6 +454,7 @@ void InputsOutputs::animate_stealing() {
 }
 
 void InputsOutputs::animate_stolen() {
+	//this->comm->write_P0(PSTR("animate_stolen"));
 	if (this->last_animate_time == 0) {
 		digitalWrite(pinouts.ready_indicator, LOW);
 		digitalWrite(pinouts.authed_indicator, HIGH);
@@ -439,6 +469,7 @@ void InputsOutputs::animate_stolen() {
 }
 
 void InputsOutputs::animate_skulking() {
+	//this->comm->write_P0(PSTR("animate_skulking"));
 	if (this->last_animate_time == 0) {
 	}
 	else {

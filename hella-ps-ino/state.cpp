@@ -437,14 +437,20 @@ void StateMachine::transition(HellaState new_state) {
 }
 
 void StateMachine::adjust_beerme_state(HellaState new_state) {
-	this->comm->trace_P(PSTR("StateMachine::adjust_beerme_state: new_state: %d"), new_state);
+	//this->comm->trace_P(PSTR("StateMachine::adjust_beerme_state: new_state: %d"), new_state);
 	if (false
 		|| (new_state == STATE_POURING)
 		|| (new_state == STATE_STOLEN)
 	) {
+		//if (!this->beerme_state) {
+			this->comm->trace_P0(PSTR("StateMachine::adjust_beerme_state: setting true"));
+		//}
 		this->beerme_state = true;
 	}
 	else {
+		if (this->beerme_state) {
+			this->comm->trace_P0(PSTR("StateMachine::adjust_beerme_state: setting false"));
+		}
 		this->beerme_state = false;
 	}
 

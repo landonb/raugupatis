@@ -83,11 +83,32 @@ BEER_LOG = '%s/raugupatis/pi-beer/beer.log' % (USER_HOME,)
 BEER_LOG_0 = '%s.0' % (BEER_LOG,)
 # Trying 10 MB for now, should be plenty?
 BEER_LOG_MAX_BYTES = 10000000
-
-
-# FIXME: Test smaller for now!
-#BEER_LOG_MAX_BYTES = 1000
-
+# 2016-11-09: Let's go 1MB again; debugging a truncate issue.
+BEER_LOG_MAX_BYTES = 987654
+# 2016-11-09: Getting a weird error on the Pi:
+#  pi@hellapi:~/raugupatis/.git $ ls -la
+#  ls: cannot access index: Structure needs cleaning
+#  ls: cannot access ORIG_HEAD: Structure needs cleaning
+#  total 56
+#  drwxr-xr-x   8 pi pi 4096 Nov  9 01:26 .
+#  drwxr-xr-x   5 pi pi 4096 Nov  4 19:36 ..
+#  drwxr-xr-x   2 pi pi 4096 Nov  4 18:54 branches
+#  -rwxr--r--   1 pi pi  261 Nov  4 18:54 config
+#  -rw-r--r--   1 pi pi   73 Nov  4 18:54 description
+#  -rw-r--r--   1 pi pi 4147 Nov  9 01:26 FETCH_HEAD
+#  -rw-r--r--   1 pi pi   23 Nov  4 18:54 HEAD
+#  drwxr-xr-x   2 pi pi 4096 Nov  4 18:54 hooks
+#  -?????????   ? ?  ?     ?            ? index
+#  drwxr-xr-x   2 pi pi 4096 Nov  4 18:54 info
+#  drwxr-xr-x   3 pi pi 4096 Nov  4 18:54 logs
+#  drwxr-xr-x 140 pi pi 4096 Nov  9 01:26 objects
+#  -?????????   ? ?  ?     ?            ? ORIG_HEAD
+#  -rw-r--r--   1 pi pi  107 Nov  4 18:54 packed-refs
+#  drwxr-xr-x   5 pi pi 4096 Nov  4 18:54 refs
+#  pi@hellapi:~/raugupatis/.git $ chmod 644 index
+#  chmod: cannot access ‘index’: Structure needs cleaning
+# and the log is truncated and beerme.log.0 was 11MB.
+# I wonder if I screwed something up rotating the file.
 
 TRACEF = open(BEER_LOG, 'w')
 def trace(msg):
@@ -102,6 +123,9 @@ def trace(msg):
     if statinfo.st_size > BEER_LOG_MAX_BYTES:
         shutil.copy(BEER_LOG, BEER_LOG_0)
         TRACEF.truncate(0)
+        # 2016-11-09: Will this fix the problem I had?
+        TRACEF.close()
+        TRACEF = open(BEER_LOG, 'w')
     TRACEF.write(msg + '\n')
     TRACEF.flush()
 
