@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.09
+// Last Modified: 2016.11.10
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -12,12 +12,17 @@
 const struct PROGMEM {
 
 	const int engaging = 666;
-	const int engaged_degaging = 12109;
+	//const int engaged_degaging = 12109;
+	//const int engaged_degaging = 6109;
+	const int engaged_degaging = 21345;
 
 	const int buzzing_off = 7654;
 
-	const int degaging = 12345;
-	const int gulping = 2345;
+	//const int degaging = 12345;
+	//const int degaging = 6345;
+	const int degaging = 4345;
+	//const int gulping = 2345;
+	const int gulping = 3456;
 
 	const int stealing = 4000;
 	const int skulking = 3000;

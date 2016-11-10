@@ -373,6 +373,7 @@ void InputsOutputs::animate_engaged() {
 	//this->comm->write_P0(PSTR("animate_engaged"));
 	if (this->last_animate_time == 0) {
 		digitalWrite(pinouts.ready_indicator, LOW);
+		beerme_ignore_next = true;
 		digitalWrite(pinouts.authed_indicator, HIGH);
 		digitalWrite(pinouts.failed_indicator, LOW);
 		digitalWrite(pinouts.action_indicator, HIGH);
@@ -381,6 +382,34 @@ void InputsOutputs::animate_engaged() {
 		digitalWrite(pinouts.beer_solenoid, HIGH);
 	}
 	else {
+		unsigned long time_interval = this->state_elapsed / 1000;
+		unsigned long interval_elapsed = this->state_elapsed % 4000;
+		if (interval_elapsed > 3000) {
+			// HA! If you flip pins too quickly -- in this case, every
+			// 63 millis() is okay, but not every 32 -- then we end up
+			// triggering a beerme_event.
+			//time_interval = this->state_elapsed / 32;
+		}
+		else if (interval_elapsed > 2500) {
+			time_interval = this->state_elapsed / 63;
+		}
+		else if (interval_elapsed > 2000) {
+			time_interval = this->state_elapsed / 125;
+		}
+		else if (interval_elapsed > 1500) {
+			time_interval = this->state_elapsed / 200;
+		}
+		else if (interval_elapsed > 1000) {
+			time_interval = this->state_elapsed / 350;
+		}
+		if ((time_interval % 2) == 0) {
+			beerme_ignore_next = true;
+			digitalWrite(pinouts.authed_indicator, HIGH);
+		}
+		else {
+			beerme_ignore_next = true;
+			digitalWrite(pinouts.authed_indicator, LOW);
+		}
 	}
 }
 
@@ -410,8 +439,8 @@ void InputsOutputs::animate_pouring() {
 void InputsOutputs::animate_gulping() {
 	//this->comm->write_P0(PSTR("animate_gulping"));
 	if (this->last_animate_time == 0) {
-		digitalWrite(pinouts.ready_indicator, LOW);
-		digitalWrite(pinouts.authed_indicator, LOW);
+		digitalWrite(pinouts.ready_indicator, HIGH);
+		digitalWrite(pinouts.authed_indicator, HIGH);
 		digitalWrite(pinouts.failed_indicator, HIGH);
 		digitalWrite(pinouts.action_indicator, LOW);
 		digitalWrite(pinouts.steal_indicator, LOW);
@@ -430,6 +459,7 @@ void InputsOutputs::animate_degaging() {
 		unsigned long hundreth_millis = this->state_elapsed / 100;
 		if ((hundreth_millis % 2) == 0) {
 			digitalWrite(pinouts.authed_indicator, LOW);
+			beerme_ignore_next = true;
 			digitalWrite(pinouts.failed_indicator, HIGH);
 		}
 		else {
