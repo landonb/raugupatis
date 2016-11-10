@@ -4,7 +4,7 @@
 """
 # File: beerme.py
 # Author: Landon Bouma
-# Last Modified: 2016.11.09
+# Last Modified: 2016.11.10
 # Project Page: https://github.com/landonb/raugupatis
 # License: GPLv3
 
@@ -251,14 +251,20 @@ class Pibeer(object):
             comports = list_ports_posix.comports()
 
             # Returns a dict-list, e.g.,
-            #  [('/dev/ttyACM1', 'ttyACM1', 'USB VID:PID=2341:0001 SNR=64935343633351905211')]
+            #  [('/dev/ttyACM0', 'ttyACM0', '3f201000.uart')]
+            #  [('/dev/ttyACM1', 'Arduino Uno', 'USB VID:PID=2341:0001 SNR=64935343633351905211')]
 
             trace("Found %d comport(s)" % (len(comports),))
-            if len(comports) > 1:
-                warn("WARNING: Found more than 1 port! Guessing and grabbing the first port.")
 
-            if len(comports) > 0:
-                comport = comports[0][0]
+            for cport in comports
+                if cport[1] == 'Arduino Uno':
+                    comport = cport
+                    break
+            if comport is None:
+                if len(comports) > 0:
+                    comport = comports[0][0]
+                    if len(comports) > 1:
+                        warn("WARNING: Found more than 1 port! Guessing and grabbing the first port.")
 
         else:
             comport = self.cli_opts.serial_dev
