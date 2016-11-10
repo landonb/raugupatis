@@ -1,4 +1,4 @@
-// Last Modified: 2016.11.09
+// Last Modified: 2016.11.10
 // Project Page: https://github.com/landonb/raugupatis
 // Description: Ardruinko Schketch*hic*.
 // vim:tw=0:ts=4:sw=4:noet:
@@ -180,7 +180,7 @@ public:
 	void animate_stolen();
 	void animate_skulking();
 
-	unsigned long beerme_events_last = -1;
+	unsigned long beerme_events_last = 0;
 };
 
 #endif // __PINS_H__

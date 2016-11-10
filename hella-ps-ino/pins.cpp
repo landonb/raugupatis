@@ -17,7 +17,7 @@ volatile bool beerme_state_ = false;
 volatile unsigned long beerme_events = 0;
 volatile bool beerme_ignore = false;
 // Well, I'll be. Fiddling pinouts.ready_indicator LOW/HIGH triggers ISR!
-volatile bool beerme_ignore_next = true;
+volatile bool beerme_ignore_next = false;
 
 volatile unsigned long flowmeter_count_ = 0;
 
@@ -43,9 +43,11 @@ void InputsOutputs::on_action_button_isr(void) {
 		// 2016-11-09: HUH?: Getting rando ISR on boot?
 		if (!beerme_ignore_next) {
 			beerme_state_ = !beerme_state_;
+			beerme_events += 1;
 		}
-		beerme_events += 1;
-		beerme_ignore_next = false;
+		else {
+			beerme_ignore_next = false;
+		}
 	}
 }
 
@@ -127,7 +129,10 @@ void InputsOutputs::hook_test_indicator(void) {
 bool InputsOutputs::get_beerme_state(void) {
 	//if (beerme_state_) {
 	if (beerme_events > this->beerme_events_last) {
-		this->comm->trace_P(PSTR("get_beerme_state: beerme_events: %lu"), beerme_events);
+		this->comm->trace_P(
+			PSTR("XXXXXXXXXXXXXXXXXX get_beerme_state: beerme_events: %lu / beerme_state_: %d"),
+			beerme_events, beerme_state_
+		);
 		this->beerme_events_last = beerme_events;
 	}
 	return beerme_state_;
@@ -182,6 +187,7 @@ void InputsOutputs::transition(HellaState new_state) {
 			contract(false, 345, __LINE__);
 		case STATE_BORED:
 			this->animator = &(this->animate_bored);
+			beerme_state_ = false;
 			break;
 		case STATE_BUZZ_OFF:
 			this->animator = &(this->animate_buzz_off);
@@ -266,6 +272,7 @@ void InputsOutputs::animate(HellaState new_state, unsigned long state_time_0) {
 void InputsOutputs::animate_bored() {
 	//this->comm->write_P0(PSTR("animate_bored"));
 	if (this->last_animate_time == 0) {
+		beerme_ignore_next = true;
 		digitalWrite(pinouts.ready_indicator, HIGH);
 		digitalWrite(pinouts.authed_indicator, LOW);
 		digitalWrite(pinouts.failed_indicator, LOW);
@@ -281,9 +288,11 @@ void InputsOutputs::animate_bored() {
 			this->state_elapsed - ((this->state_elapsed / 1000) * 1000)
 		;
 		if (millis_after_sec < 200) {
+			beerme_ignore = true;
 			//unsigned long tenth_millis = this->state_elapsed / 10;
 			unsigned long twentieth_millis = this->state_elapsed / 20;
 			if ((twentieth_millis % 2) == 0) {
+				beerme_ignore_next = true;
 				digitalWrite(pinouts.ready_indicator, LOW);
 			}
 			else {
@@ -292,10 +301,13 @@ void InputsOutputs::animate_bored() {
 			}
 		}
 		else if (millis_after_sec < 300) {
+			beerme_ignore = false;
+			beerme_ignore_next += 2;
 			digitalWrite(pinouts.ready_indicator, LOW);
 		}
 		else {
-			beerme_ignore_next = true;
+			beerme_ignore = false;
+			beerme_ignore_next += 2;
 			digitalWrite(pinouts.ready_indicator, HIGH);
 		}
 	}
@@ -407,7 +419,7 @@ void InputsOutputs::animate_engaged() {
 			digitalWrite(pinouts.authed_indicator, HIGH);
 		}
 		else {
-			beerme_ignore_next = true;
+			//beerme_ignore_next = true;
 			digitalWrite(pinouts.authed_indicator, LOW);
 		}
 	}
@@ -425,6 +437,7 @@ void InputsOutputs::animate_pouring() {
 	//this->comm->write_P0(PSTR("animate_pouring"));
 	if (this->last_animate_time == 0) {
 		digitalWrite(pinouts.ready_indicator, LOW);
+		beerme_ignore_next = true;
 		digitalWrite(pinouts.authed_indicator, HIGH);
 		digitalWrite(pinouts.failed_indicator, LOW);
 		digitalWrite(pinouts.action_indicator, HIGH);

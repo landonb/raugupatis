@@ -16,11 +16,13 @@ const struct PROGMEM {
 	//const int engaged_degaging = 6109;
 	const int engaged_degaging = 21345;
 
-	const int buzzing_off = 7654;
+	//const int buzzing_off = 7654;
+	const int buzzing_off = 5154;
 
 	//const int degaging = 12345;
 	//const int degaging = 6345;
-	const int degaging = 4345;
+	//const int degaging = 4345;
+	const int degaging = 3600;
 	//const int gulping = 2345;
 	const int gulping = 3456;
 
