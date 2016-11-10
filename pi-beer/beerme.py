@@ -260,11 +260,11 @@ class Pibeer(object):
                 if cport[1] == 'Arduino Uno':
                     comport = cport[0]
                     break
-            if comport is None:
-                if len(comports) > 0:
-                    comport = comports[0][0]
-                    if len(comports) > 1:
-                        warn("WARNING: Found more than 1 port! Guessing and grabbing the first port.")
+            #if comport is None:
+            #    if len(comports) > 0:
+            #        comport = comports[0][0]
+            #        if len(comports) > 1:
+            #            warn("WARNING: Found more than 1 port! Guessing and grabbing the first port.")
 
         else:
             comport = self.cli_opts.serial_dev
