@@ -433,6 +433,7 @@ void InputsOutputs::animate_degaging() {
 			digitalWrite(pinouts.failed_indicator, HIGH);
 		}
 		else {
+			beerme_ignore_next = true;
 			digitalWrite(pinouts.authed_indicator, HIGH);
 			digitalWrite(pinouts.failed_indicator, LOW);
 		}

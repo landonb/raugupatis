@@ -448,7 +448,7 @@ class Pibeer(object):
 
         self.serial.write(resp.encode('utf-8'))
 #        self.serial.write(resp)
-        self.serial.flush()
+#        self.serial.flush()
 
     def sphinx_authenticate(self, token):
         authenticated = False
