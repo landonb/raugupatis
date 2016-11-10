@@ -258,7 +258,7 @@ class Pibeer(object):
 
             for cport in comports:
                 if cport[1] == 'Arduino Uno':
-                    comport = cport
+                    comport = cport[0]
                     break
             if comport is None:
                 if len(comports) > 0:
