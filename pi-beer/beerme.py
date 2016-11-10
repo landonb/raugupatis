@@ -26,8 +26,22 @@
 #
 # On your Pi, clone this code
 #
-#  cd ~
-#  git clone https://github.com/landonb/raugupatis
+#   cd ~
+#   git clone https://github.com/landonb/raugupatis
+#
+# Raspbian Jessie Lite!
+#
+#   # So, install git fails on a 404 error unless you update first. I know, right.
+#   sudo apt-get update
+#   sudo apt-get install -y git
+#   sudo apt-get install -y python3
+#   sudo apt-get install -y python3-pip
+#   sudo pip3 install pyserial
+#   # Already installed:
+#   sudo pip3 install requests
+#   # Then you can:
+#   cd ~
+#   git clone https://github.com/landonb/raugupatis
 #
 #  NOTE: Sometimes you gotta run `git` again.
 #    pi@hellapi:~/raugupatis/pi-beer $ git clone http://github.com/landonb/raugupatis
@@ -113,6 +127,7 @@ BEER_LOG_MAX_BYTES = 987654
 TRACEF = open(BEER_LOG, 'w')
 def trace(msg):
     """trace"""
+    global TRACEF
     # MEH. We could just print to stdout and let the caller
     #      decide to redirect output to a file, since otherwise
     #      we have to manage the log file so it doesn't grow unwieldy
