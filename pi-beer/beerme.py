@@ -256,7 +256,7 @@ class Pibeer(object):
 
             trace("Found %d comport(s)" % (len(comports),))
 
-            for cport in comports
+            for cport in comports:
                 if cport[1] == 'Arduino Uno':
                     comport = cport
                     break
