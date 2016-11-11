@@ -18,6 +18,7 @@ volatile unsigned long beerme_events = 0;
 volatile bool beerme_ignore = false;
 // Well, I'll be. Fiddling pinouts.ready_indicator LOW/HIGH triggers ISR!
 volatile bool beerme_ignore_next = false;
+volatile unsigned long beerme_ignore_until = 0;
 
 volatile unsigned long flowmeter_count_ = 0;
 
@@ -38,16 +39,19 @@ void InputsOutputs::setup(Helladuino *hellaps) {
 // ISRs.
 
 void InputsOutputs::on_action_button_isr(void) {
-	// When animating...
-	if (!beerme_ignore) {
-		// 2016-11-09: HUH?: Getting rando ISR on boot?
-		if (!beerme_ignore_next) {
-			beerme_state_ = !beerme_state_;
-			beerme_events += 1;
+	if ((beerme_ignore_until == 0) || (millis() >= beerme_ignore_until)) {
+		// When animating...
+		if (!beerme_ignore) {
+			// 2016-11-09: HUH?: Getting rando ISR on boot?
+			if (!beerme_ignore_next) {
+				beerme_state_ = !beerme_state_;
+				beerme_events += 1;
+			}
+			else {
+				beerme_ignore_next = false;
+			}
 		}
-		else {
-			beerme_ignore_next = false;
-		}
+		beerme_ignore_until = 0;
 	}
 }
 
@@ -240,6 +244,9 @@ void InputsOutputs::transition(HellaState new_state) {
 			break;
 	}
 
+	// Ug. Serious line bleed. Noise. What's it called?
+	beerme_ignore_until = millis() + 500;
+
 	this->set_beerme_ignore(beerme_ignore_);
 
 	// 2016-11-09: The LED was just for testing.
@@ -394,7 +401,9 @@ void InputsOutputs::animate_engaged() {
 		digitalWrite(pinouts.beer_solenoid, HIGH);
 	}
 	else {
-		unsigned long time_interval = this->state_elapsed / 1000;
+//return;
+		//unsigned long time_interval = this->state_elapsed / 1000;
+		unsigned long time_interval = this->state_elapsed / 500;
 		unsigned long interval_elapsed = this->state_elapsed % 4000;
 		if (interval_elapsed > 3000) {
 			// HA! If you flip pins too quickly -- in this case, every
@@ -403,16 +412,16 @@ void InputsOutputs::animate_engaged() {
 			//time_interval = this->state_elapsed / 32;
 		}
 		else if (interval_elapsed > 2500) {
-			time_interval = this->state_elapsed / 63;
+//			time_interval = this->state_elapsed / 63;
 		}
 		else if (interval_elapsed > 2000) {
-			time_interval = this->state_elapsed / 125;
+//			time_interval = this->state_elapsed / 125;
 		}
 		else if (interval_elapsed > 1500) {
-			time_interval = this->state_elapsed / 200;
+//			time_interval = this->state_elapsed / 200;
 		}
 		else if (interval_elapsed > 1000) {
-			time_interval = this->state_elapsed / 350;
+//			time_interval = this->state_elapsed / 350;
 		}
 		if ((time_interval % 2) == 0) {
 			beerme_ignore_next = true;
@@ -444,6 +453,9 @@ void InputsOutputs::animate_pouring() {
 		digitalWrite(pinouts.steal_indicator, LOW);
 		//digitalWrite(pinouts.noise_indicator, LOW);
 		digitalWrite(pinouts.beer_solenoid, LOW);
+this->comm->trace_P0(PSTR("BEFORE XXXXXXXXXXXXXXXXXXXXXXXX"));
+delay(50);
+this->comm->trace_P0(PSTR("AFTER XXXXXXXXXXXXXXXXXXXXXXXX"));
 	}
 	else {
 	}
